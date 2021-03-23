@@ -23,7 +23,8 @@ impl<'a> Grade<'a> {
         cmp::max(
             0,
             self.out_of - self.comments.iter()
-                                       .fold(0, |acc, com| acc + com.deduction)
+                                       .map(|c| c.deduction)
+                                       .sum::<u32>()
         )
 
     }
@@ -56,12 +57,10 @@ mod tests {
     fn it_gets_the_total_mark() {
         let mut g = Grade::new(1,3,4);
         let com = Comment::new(
-            String::from("com-123"),
             2,
             String::from("some comment text")
         );
         let com2 = Comment::new(
-            String::from("com-456"),
             1,
             String::from("some other comment text")
         );

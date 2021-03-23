@@ -35,10 +35,8 @@ impl<'a> Assignment<'a> {
     pub fn get_mark(&self) -> u32 {
         self.grades
             .iter()
-            .fold(
-                0,
-                |acc, g| acc + g.get_mark()
-            )
+            .map(|g| g.get_mark())
+            .sum()
     }
 }
 
