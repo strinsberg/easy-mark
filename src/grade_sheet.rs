@@ -48,31 +48,31 @@ mod tests {
     #[test]
     fn it_builds() {
         let marks = vec![ vec![2, 4], vec![10]];
-        let asn = GradeSheet::new(String::from("Steve"), &marks);
+        let gs = GradeSheet::new(String::from("Steve"), &marks);
 
-        assert_eq!(String::from("Steve"), asn.student);
-        assert_eq!(16, asn.total);
-        assert_eq!(3, asn.grades.len());
+        assert_eq!(String::from("Steve"), gs.student);
+        assert_eq!(16, gs.total);
+        assert_eq!(3, gs.grades.len());
 
-        assert_eq!(2, asn.grades[0].out_of);
-        assert_eq!(1, asn.grades[0].num);
-        assert_eq!(1, asn.grades[0].part);
+        assert_eq!(2, gs.grades[0].out_of);
+        assert_eq!(1, gs.grades[0].num);
+        assert_eq!(1, gs.grades[0].part);
 
-        assert_eq!(4, asn.grades[1].out_of);
-        assert_eq!(1, asn.grades[1].num);
-        assert_eq!(2, asn.grades[1].part);
+        assert_eq!(4, gs.grades[1].out_of);
+        assert_eq!(1, gs.grades[1].num);
+        assert_eq!(2, gs.grades[1].part);
 
-        assert_eq!(10, asn.grades[2].out_of);
-        assert_eq!(2, asn.grades[2].num);
-        assert_eq!(1, asn.grades[2].part);
+        assert_eq!(10, gs.grades[2].out_of);
+        assert_eq!(2, gs.grades[2].num);
+        assert_eq!(1, gs.grades[2].part);
     }
 
     #[test]
     fn it_gets_the_correct_marks() {
         let marks = vec![ vec![2, 4], vec![10]];
-        let asn = GradeSheet::new(String::from("Steve"), &marks);
+        let gs = GradeSheet::new(String::from("Steve"), &marks);
 
-        assert_eq!(16, asn.get_mark());
+        assert_eq!(16, gs.get_mark());
     } 
 }
 

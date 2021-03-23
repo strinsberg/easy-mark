@@ -93,7 +93,6 @@ mod tests {
         assert_eq!(String::from("Steven"), asn.grade_sheets[0].student);
         assert_eq!(16, asn.grade_sheets[0].total);
     }
-
 }
 
 
