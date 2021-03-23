@@ -2,14 +2,14 @@ use crate::grade::Grade;
 use std::convert::TryInto;
 
 #[derive(Debug)]
-pub struct GradeSheet<'a> {
+pub struct GradeSheet {
     pub student: String,
     pub total: u32,
-    pub grades: Vec<Grade<'a>>,
+    pub grades: Vec<Grade>,
 }
 
-impl<'a> GradeSheet<'a> {
-    pub fn new(student: String, marks: &Vec<Vec<u32>>) -> GradeSheet<'a> {
+impl GradeSheet {
+    pub fn new(student: String, marks: &Vec<Vec<u32>>) -> GradeSheet {
         let mut grades = Vec::new();
         let mut total = 0;
         for (i, v) in marks.iter().enumerate() {

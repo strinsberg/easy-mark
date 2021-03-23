@@ -1,4 +1,6 @@
+/*
 use crate::grade_sheet::GradeSheet;
+use crate::grade::Grade;
 use crate::comment::Comment;
 
 
@@ -25,7 +27,7 @@ impl<'a> Assignment<'a> {
         }
     }
 
-    pub fn new_comment(&mut self, deduction: u32, text: String) {
+    pub fn new_comment(&mut self, deduction: u32, text: String, grade: &mut Grade<'a>) {
         self.comments.push(
             CommentAndCount {
                 com: Comment::new(deduction, text),
@@ -42,12 +44,24 @@ impl<'a> Assignment<'a> {
             )
         )
     }
+
+    pub fn get_grade(&mut self, student: &String, q_num: u32, q_part: u32) -> &mut Grade<'a> {
+        self.grade_sheets
+            .iter_mut()
+            .find(|gs| gs.student == *student)
+            .unwrap() // fix later with match and return option
+            .grades
+            .iter_mut()
+            .find(|g| g.num == q_num && g.part == q_part)
+            .unwrap()
+    }
 }
 
 
 #[cfg(test)]
 mod tests {
     use crate::assignment::Assignment;
+    use crate::grade::Grade;
     use crate::comment::Comment;
 
     #[test]
@@ -71,9 +85,11 @@ mod tests {
             String::from("CPSC 3720"),
             vec![ vec![2, 4], vec![10]],
         );
+        let mut g = Grade::new(1,3,4);
         asn.new_comment(
             2,
-            String::from("some comment text")
+            String::from("some comment text"),
+            &mut g,
         );
         assert_eq!(1, asn.comments.len());
         assert_eq!(1, asn.comments[0].count);
@@ -98,4 +114,4 @@ mod tests {
 
 
 
-
+*/

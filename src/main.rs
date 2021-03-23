@@ -2,6 +2,7 @@ mod comment;
 mod grade;
 mod grade_sheet;
 mod assignment;
+mod app;
 
 use comment::Comment;
 

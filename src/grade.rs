@@ -2,20 +2,20 @@ use crate::comment::Comment;
 use std::cmp;
 
 #[derive(Debug)]
-pub struct Grade<'a> {
+pub struct Grade {
     pub num: u32,
     pub part: u32,
     pub out_of: u32,
-    pub comments: Vec<&'a Comment>,
+    pub comments: Vec<Comment>,
 }
 
-impl<'a> Grade<'a> {
-    pub fn new(num: u32, part: u32, out_of: u32) -> Grade<'a> {
+impl Grade {
+    pub fn new(num: u32, part: u32, out_of: u32) -> Grade {
         Grade {
             num,
             part,
             out_of,
-            comments: Vec::<&'a Comment>::new(),
+            comments: Vec::new(),
         }
     }
 
@@ -29,12 +29,12 @@ impl<'a> Grade<'a> {
 
     }
 
-    pub fn to_text(&self) -> String {
-        String::from("nil")
+    pub fn add_com(&mut self, com: &Comment) {
+        self.comments.push((*com).clone());
     }
 
-    pub fn to_latex(&self) -> String {
-        String::from("nil")
+    pub fn del_com(&mut self, com: &Comment) {
+        self.comments.retain(|c| c != com);
     }
 }
 
@@ -64,8 +64,8 @@ mod tests {
             1,
             String::from("some other comment text")
         );
-        g.comments.push(&com);
-        g.comments.push(&com2);
+        g.add_com(&com);
+        g.add_com(&com2);
 
         assert_eq!(1, g.get_mark());
     }

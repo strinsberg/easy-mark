@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Comment {
     pub deduction: u32,
     pub text: String,
