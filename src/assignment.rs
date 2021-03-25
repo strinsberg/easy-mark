@@ -8,6 +8,7 @@ pub struct Assignment {
     pub title: String,
     pub course: String,
     pub students: Vec<String>,
+    pub questions: Vec<Question>,
     pub comments: HashMap<Question, Vec<Comment>>,
     next_id: u64,
 }
@@ -18,6 +19,7 @@ impl Assignment {
             title,
             course,
             students: Vec::new(),
+            questions: Vec::new(),
             comments: HashMap::new(),
             next_id: 0,
         }
@@ -27,6 +29,7 @@ impl Assignment {
         let q = Question{ num, part, out_of };
         assert!(!self.comments.contains_key(&q));
 
+        self.questions.push(q.clone());
         self.comments.insert(q, Vec::new());
     }
 

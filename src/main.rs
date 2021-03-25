@@ -1,6 +1,8 @@
 mod comment;
 mod assignment;
 mod app;
+mod display;
+mod latex;
 
 use crate::app::App;
 
