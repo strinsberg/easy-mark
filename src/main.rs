@@ -1,12 +1,11 @@
 mod comment;
-mod grade;
-mod grade_sheet;
 mod assignment;
 mod app;
 
-use comment::Comment;
+use crate::app::App;
 
 
 fn main() {
-    print!("some string");
+    let mut app = App::new();
+    app.run();
 }

@@ -1,27 +1,26 @@
-#[derive(Debug, PartialEq, Clone)]
+use std::collections::HashSet;
+
+#[derive(Debug)]
 pub struct Comment {
+    pub id: u64,
     pub deduction: u32,
     pub text: String,
+    pub names: HashSet<String>,
 }
 
 impl Comment {
-    pub fn new(deduction: u32, text: String) -> Comment {
-        Comment { deduction, text }
+    pub fn new(id: u64, deduction: u32, text: String, student: String) -> Comment {
+        let mut names = HashSet::new();
+        names.insert(student);
+        Comment { id, deduction, text, names }
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::comment::Comment;
 
-    #[test]
-    fn it_builds() {
-        let com = Comment::new(
-            2,
-            String::from("some comment text")
-        );
-        assert_eq!(2, com.deduction);
-        assert_eq!(String::from("some comment text"), com.text);
-    }
-} 
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub struct Question {
+    pub num: u32,
+    pub part: u32,
+    pub out_of: u32,
+}
 
