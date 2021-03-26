@@ -22,8 +22,8 @@ impl App {
             student: "none".to_string(),
             student_idx: 0,
             question: Question {
-                num: 0,
-                part: 0,
+                num: 1,
+                part: 1,
                 out_of: 0
             },
             question_idx: 0,
@@ -50,6 +50,8 @@ impl App {
             },
             _ => return ()
         }
+
+        self.question = self.assignment.questions[self.question_idx as usize].clone();
         self.asn_menu();
     }
 
@@ -124,7 +126,7 @@ impl App {
         ];
 
         loop {
-            let header = "Grading Menu".to_string();  // add Qnum and grade
+            let header = format!("Question {}.{}", self.question.num, self.question.part);
             let choice = display::get_menu_choice(&header, &menu);
             match choice {
                 1 => self.add_new_comment(),
@@ -145,7 +147,12 @@ impl App {
 
     fn add_new_comment(&mut self) {
         let (deduct, text) = display::new_comment();
-        // pass to asn.newcomment
+        self.assignment.new_comment(
+            &self.student,
+            &self.question,
+            deduct,
+            text,
+        );
     }
 
     fn add_existing_comment(&mut self) {
@@ -154,7 +161,11 @@ impl App {
             &self.student,
             &self.question,
         );
-        // pass the student and question and id to asn.add_comment_to
+        self.assignment.add_comment_to(
+            &self.student,
+            &self.question,
+            com_id
+        );
     }
 
     fn edit_comment(&mut self) {
@@ -163,7 +174,12 @@ impl App {
             &self.student,
             &self.question,
         );
-        // use these results and what we already know to asn.editcomment
+        self.assignment.edit_comment(
+            &self.question,
+            id,
+            deduct,
+            text
+        );
     }
 
     fn remove_comment(&mut self) {
@@ -172,7 +188,11 @@ impl App {
             &self.student,
             &self.question,
         );
-        // pass the result and what we know to asn.removecomment
+        self.assignment.remove_comment_from(
+            &self.student,
+            &self.question,
+            com_id
+        );
     }
 
     fn change_question(&mut self, dx: i32) {

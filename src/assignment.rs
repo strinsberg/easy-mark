@@ -33,24 +33,24 @@ impl Assignment {
         self.comments.insert(q, Vec::new());
     }
 
-    pub fn new_comment(&mut self, student: String, question: Question, deduction: u32, text: String) {
-        let com = Comment::new(self.next_id, deduction, text, student);
+    pub fn new_comment(&mut self, student: &String, question: &Question, deduction: u32, text: String) {
+        let com = Comment::new(self.next_id, deduction, text, student.clone());
         self.next_id += 1;
 
         self.comments
-            .get_mut(&question)
+            .get_mut(question)
             .unwrap()
             .push(com);
     }
 
-    pub fn add_comment_to(&mut self, student: String, question: &Question, id: u64) {
+    pub fn add_comment_to(&mut self, student: &String, question: &Question, id: u64) {
         self.comments
             .get_mut(question)
             .unwrap()
             .iter_mut()
             .find(|c| c.id == id)
             .unwrap()
-            .names.insert(student);
+            .names.insert(student.clone());
     }
 
     pub fn remove_comment_from(&mut self, student: &String, question: &Question, id: u64) {

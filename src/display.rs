@@ -24,15 +24,40 @@ pub fn get_new_student_name() -> String {
 
 pub fn create_new_assignment() -> Assignment {
     print!("==== New Assignment ====\n");
-    // get assignment name
-    // get assignment course
-    // get number of questions
-    // get marks for each question part
-    // return the new assignment
-    Assignment::new(
-        "default".to_string(),
-        "none".to_string()
-    )
+    let name = input().msg("Assignment Name: ").get();
+    let course = input().msg("Course: ").get();
+    let mut asn = Assignment::new(name, course);
+
+    let num_q: u32 = loop {
+        let choice: String = input().msg("Number of Questions: ").get();
+        match choice.parse::<u32>() {
+            Ok(x) => break x,
+            _ => print!("\n*** Please choose a number ***\n\n"),
+        }
+    };
+
+    for i in 1..(num_q+1) {
+        println!("==== Marks for Question {} (0 to finish) ====", i);
+        let mut part_num = 1;
+        loop {
+            let choice: String = input().msg(format!("Marks for {}.{}: ", i, part_num)).get();
+            match choice.parse::<u32>() {
+                Ok(x) if x <= 0 => {
+                    if part_num > 1 {
+                        break
+                    } else {
+                        println!("*** Each Question Must have at least 1 part ***");
+                    }
+                },
+                Ok(x) => {
+                    asn.new_question(i, part_num, x);
+                    part_num += 1;
+                },
+                _ => print!("\n*** Please choose a number ***\n\n"),
+            }
+        }
+    }
+    asn
 }
 
 pub fn load_assignment() -> Option<Assignment> {
@@ -57,18 +82,29 @@ pub fn grade_sheet(assignment: &Assignment, student: &String) {
 }
 
 pub fn question(assignment: &Assignment, student: &String, question: &Question) {
-    // get all comments for this question and student
-    // show question num, part, and marks/total
-    // show each comment
     print!("\nDisplay Question\n\n");
+    let comments = assignment.comments
+        .get(question)
+        .unwrap()
+        .iter()
+        .filter(|c| c.names.contains(student));
+    for com in comments {
+        println!("{} -- {}", com.deduction, com.text);
+    }
 }
 
 // should be an option if they decide to discard it
 pub fn new_comment() -> (u32, String) {
-    print!("\nAdd New Comment\n\n");
-    // show header
-    // get deduction and text
-    (0, "none".to_string())
+    println!("\n==== Add New Comment ====\n");
+    let deduction: u32 = loop {
+         let num: String = input().msg("Deduction: ").get();
+         match num.parse::<u32>() {
+             Ok(x) if x >= 0 => break x,
+             _ => println!("*** Enter 0 or higher for the deduction ***"),
+         }
+    };
+    let text = input().msg("Comment: ").get();
+    (deduction, text)
 }
 
 // should return option if they dont pick a comment
