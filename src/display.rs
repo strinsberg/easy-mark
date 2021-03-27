@@ -1,29 +1,39 @@
 use crate::assignment::Assignment;
 use crate::comment::Question;
 use read_input::prelude::*;
+use std::process::Command;
+use std::cmp;
+
+pub fn clear_screen() {
+    Command::new("clear").status().unwrap();
+}
 
 pub fn get_menu_choice(header: &String, menu: &Vec<String>) -> u32 {
-    loop {
-        print!("==== {} ====\n", header);
+    let num = loop {
+        println!("==== {} ====", header);
         for (i, item) in menu.iter().enumerate() {
-            print!("{}. {}\n", i + 1, item);
+            println!("{}. {}", i + 1, item);
         }
 
         let choice: String = input().msg("Choice: ").get();
         match choice.parse::<u32>() {
-            Ok(x) if x != 0 && x <= menu.len() as u32 => return x,
-            _ => print!("\n*** Invalid Choice ***\n\n"),
+            Ok(x) if x != 0 && x <= menu.len() as u32 => break x,
+            _ => println!("\n*** Invalid Choice ***\n"),
         }
-    }
+    };
+    clear_screen();
+    num
 }
 
 pub fn get_new_student_name() -> String {
     print!("==== New Student ====\n");
-    input().msg("Student Name: ").get()
+    let name = input().msg("Student Name: ").get();
+    clear_screen();
+    name
 }
 
 pub fn create_new_assignment() -> Assignment {
-    print!("==== New Assignment ====\n");
+    println!("==== New Assignment ====");
     let name = input().msg("Assignment Name: ").get();
     let course = input().msg("Course: ").get();
     let mut asn = Assignment::new(name, course);
@@ -32,12 +42,12 @@ pub fn create_new_assignment() -> Assignment {
         let choice: String = input().msg("Number of Questions: ").get();
         match choice.parse::<u32>() {
             Ok(x) => break x,
-            _ => print!("\n*** Please choose a number ***\n\n"),
+            _ => println!("\n*** Please choose a number ***\n"),
         }
     };
 
     for i in 1..(num_q+1) {
-        println!("==== Marks for Question {} (0 to finish) ====", i);
+        println!("\n==== Marks for Question {} (0 to finish) ====", i);
         let mut part_num = 1;
         loop {
             let choice: String = input().msg(format!("Marks for {}.{}: ", i, part_num)).get();
@@ -46,17 +56,18 @@ pub fn create_new_assignment() -> Assignment {
                     if part_num > 1 {
                         break
                     } else {
-                        println!("*** Each Question Must have at least 1 part ***");
+                        println!("\n*** Each Question Must have at least 1 part ***\n");
                     }
                 },
                 Ok(x) => {
                     asn.new_question(i, part_num, x);
                     part_num += 1;
                 },
-                _ => print!("\n*** Please choose a number ***\n\n"),
+                _ => println!("\n*** Please choose a number ***\n"),
             }
         }
     }
+    clear_screen();
     asn
 }
 
@@ -82,28 +93,35 @@ pub fn grade_sheet(assignment: &Assignment, student: &String) {
 }
 
 pub fn question(assignment: &Assignment, student: &String, question: &Question) {
-    print!("\nDisplay Question\n\n");
     let comments = assignment.comments
         .get(question)
         .unwrap()
         .iter()
         .filter(|c| c.names.contains(student));
+
+    let mark = question.out_of as i32
+        - comments.clone().fold(0, |acc, c| acc + c.deduction) as i32;
+
+    println!("Question {}.{}", question.num, question.part);
+    println!("Grade {}/{}\n", cmp::max(mark, 0), question.out_of);
     for com in comments {
         println!("{} -- {}", com.deduction, com.text);
     }
+    println!("");
 }
 
 // should be an option if they decide to discard it
 pub fn new_comment() -> (u32, String) {
-    println!("\n==== Add New Comment ====\n");
+    println!("==== Add New Comment ====");
     let deduction: u32 = loop {
          let num: String = input().msg("Deduction: ").get();
          match num.parse::<u32>() {
              Ok(x) if x >= 0 => break x,
-             _ => println!("*** Enter 0 or higher for the deduction ***"),
+             _ => println!("\n*** Enter 0 or higher for the deduction ***\n"),
          }
     };
     let text = input().msg("Comment: ").get();
+    clear_screen();
     (deduction, text)
 }
 

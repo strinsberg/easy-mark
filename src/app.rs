@@ -38,6 +38,7 @@ impl App {
             "Quit".to_string()
         ];
 
+        display::clear_screen();
         let choice = display::get_menu_choice(&header, &menu);
         match choice {
             1 => {
@@ -70,7 +71,7 @@ impl App {
         loop {
             let header = format!(
                 "{} Menu ({})", 
-                self.assignment.course,
+                self.assignment.title,
                 self.student
             );
 
@@ -126,6 +127,7 @@ impl App {
         ];
 
         loop {
+            // needs question marks and what it is out of
             let header = format!("Question {}.{}", self.question.num, self.question.part);
             let choice = display::get_menu_choice(&header, &menu);
             match choice {
