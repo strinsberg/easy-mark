@@ -148,13 +148,15 @@ impl App {
     }
 
     fn add_new_comment(&mut self) {
-        let (deduct, text) = display::new_comment();
-        self.assignment.new_comment(
-            &self.student,
-            &self.question,
-            deduct,
-            text,
-        );
+        match display::new_comment() {
+            Some((deduct, text)) => self.assignment.new_comment(
+                &self.student,
+                &self.question,
+                deduct,
+                text,
+            ),
+            _ => ()
+        }
     }
 
     fn add_existing_comment(&mut self) {

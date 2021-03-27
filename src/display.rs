@@ -99,14 +99,18 @@ pub fn question(assignment: &Assignment, student: &String, question: &Question) 
     println!("Question {}.{}", question.num, question.part);
     println!("Grade {}/{}\n", mark, question.out_of);
 
-    for com in comments {
-        println!("[-{}]\n   {}", com.deduction, com.text);
+    if comments.len() == 0 {
+        println!("** Well Done **");
+    } else {
+        for com in comments {
+            println!("[-{}]\n   {}", com.deduction, com.text);
+        }
     }
     println!("");
 }
 
 // should be an option if they decide to discard it
-pub fn new_comment() -> (u32, String) {
+pub fn new_comment() -> Option<(u32, String)> {
     println!("==== Add New Comment ====");
     let deduction: u32 = loop {
          let num: String = input().msg("Deduction: ").get();
@@ -115,9 +119,15 @@ pub fn new_comment() -> (u32, String) {
              _ => println!("\n*** Enter 0 or higher for the deduction ***\n"),
          }
     };
-    let text = input().msg("Comment: ").get();
+
+    let text: String = input().msg("Comment: ").get();
+    let satisfied: String = input().msg("Satisfied? (y/n): ").get();
     clear_screen();
-    (deduction, text)
+
+    match satisfied.to_lowercase() == "y".to_string() {
+        true => Some((deduction, text)),
+        false => None
+    }
 }
 
 // should return option if they dont pick a comment
@@ -132,6 +142,13 @@ pub fn choose_existing_comment(assignment: &Assignment, student: &String, questi
 pub fn edit_comment(assignment: &Assignment, student: &String, question: &Question) -> Option<(u32, String, u64)> {
     let header = "Edit Comment".to_string();
     let comments = assignment.question_comments(student, question);
+
+    if comments.len() == 0 {
+        clear_screen();
+        println!("*** No comments added yet ***\n");
+        return None;
+    }
+
     let mut menu: Vec<String> = comments.iter()
         .map(|c| format!("[-{}]\n   {} ", c.deduction, c.text))
         .collect();
@@ -145,8 +162,10 @@ pub fn edit_comment(assignment: &Assignment, student: &String, question: &Questi
         println!("Deduction: {}", comments[choice].deduction);
         println!("Text: {}\n", comments[choice].text);
 
-        let (deduction, text) = new_comment();
-        Some((deduction, text, comments[choice].id))
+        match new_comment() {
+            Some((deduct, text)) => Some((deduct, text, comments[choice].id)),
+            _ => None
+        }
     } else {
         None
     }
@@ -156,6 +175,13 @@ pub fn edit_comment(assignment: &Assignment, student: &String, question: &Questi
 pub fn remove_comment(assignment: &Assignment, student: &String, question: &Question) -> Option<u64> {
     let header = "Remove Comment".to_string();
     let comments = assignment.question_comments(student, question);
+    
+    if comments.len() == 0 {
+        clear_screen();
+        println!("*** No comments added yet ***\n");
+        return None;
+    }
+
     let mut menu: Vec<String> = comments.iter()
         .map(|c| format!("[-{}]\n   {} ", c.deduction, c.text))
         .collect();
