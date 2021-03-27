@@ -83,23 +83,26 @@ pub fn create_new_assignment() -> Assignment {
 }
 
 pub fn load_assignment() -> Option<Assignment> {
+    // This way of getting the file names is not the best, but it works
     let mut files: Vec<String> = fs::read_dir("./")
         .unwrap()
-        .filter(|p| {
-            p.as_ref()
-                .unwrap()
+        .map(|p| {
+            p.unwrap()
                 .path()
                 .display()
                 .to_string()
-                .ends_with(".emark")
+                .strip_prefix("./")
+                .unwrap()
+                .to_string()
         })
-        .map(|p| p.unwrap().path().display().to_string())
+        .filter(|s| s.ends_with(".emark"))
         .collect();
 
     if files.len() > 0 {
         files.push("Exit".to_string());
-        let header = "==== Load Assignment ====".to_string();
+        let header = "Load Assignment".to_string();
         let choice = (get_menu_choice(&header, &files) - 1) as usize;
+
         if choice >= files.len() - 1 {
             println!("*** Exit ***");
             None
