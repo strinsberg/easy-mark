@@ -1,6 +1,8 @@
 use crate::comment::Comment;
 use crate::comment::Question;
 use std::collections::HashMap;
+use std::cmp;
+use std::convert::TryInto;
 
 
 #[derive(Debug)]
@@ -74,4 +76,23 @@ impl Assignment {
         com.deduction = deduction;
         com.text = text;
     }
+
+    pub fn question_comments(&self, student: &String, question: &Question) -> Vec<Comment> {
+        self.comments
+            .get(question)
+            .unwrap()
+            .iter()
+            .filter(|c| c.names.contains(student))
+            .map(|c| c.clone())
+            .collect()
+    }
+
+    pub fn question_mark(&self, student: &String, question: &Question) -> u32 {
+        let total = question.out_of as i32;
+        let deducted = self.question_comments(student, question)
+                           .iter()
+                           .fold(0, |acc, c| acc + c.deduction) as i32;
+        cmp::max(0, total - deducted).try_into().unwrap()
+    }
+
 }

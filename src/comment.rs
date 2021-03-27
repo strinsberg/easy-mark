@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Comment {
     pub id: u64,
     pub deduction: u32,

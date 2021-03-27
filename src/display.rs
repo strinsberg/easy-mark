@@ -93,19 +93,14 @@ pub fn grade_sheet(assignment: &Assignment, student: &String) {
 }
 
 pub fn question(assignment: &Assignment, student: &String, question: &Question) {
-    let comments = assignment.comments
-        .get(question)
-        .unwrap()
-        .iter()
-        .filter(|c| c.names.contains(student));
-
-    let mark = question.out_of as i32
-        - comments.clone().fold(0, |acc, c| acc + c.deduction) as i32;
+    let comments = assignment.question_comments(student, question);
+    let mark = assignment.question_mark(student, question);
 
     println!("Question {}.{}", question.num, question.part);
-    println!("Grade {}/{}\n", cmp::max(mark, 0), question.out_of);
+    println!("Grade {}/{}\n", mark, question.out_of);
+
     for com in comments {
-        println!("{} -- {}", com.deduction, com.text);
+        println!("[-{}]\n   {}", com.deduction, com.text);
     }
     println!("");
 }
@@ -134,20 +129,44 @@ pub fn choose_existing_comment(assignment: &Assignment, student: &String, questi
     0
 }
 
-// should return option if they dont pick a comment, or they discard changes
-pub fn edit_comment(assignment: &Assignment, student: &String, question: &Question) -> (u32, String, u64) {
-    print!("\nEdit Comment\n\n");
-    // list all the comments that we have to choose from
-    // display the chosen one
-    // take info for the new comment
-    // return the deduction and text
-    (0, "none".to_string(), 0)
+pub fn edit_comment(assignment: &Assignment, student: &String, question: &Question) -> Option<(u32, String, u64)> {
+    let header = "Edit Comment".to_string();
+    let comments = assignment.question_comments(student, question);
+    let mut menu: Vec<String> = comments.iter()
+        .map(|c| format!("[-{}]\n   {} ", c.deduction, c.text))
+        .collect();
+    menu.push("Cancel".to_string());
+
+    let choice = (get_menu_choice(&header, &menu) - 1) as usize;
+    clear_screen();
+
+    if choice < comments.len() {
+        println!("==== Existing Comment ====");
+        println!("Deduction: {}", comments[choice].deduction);
+        println!("Text: {}\n", comments[choice].text);
+
+        let (deduction, text) = new_comment();
+        Some((deduction, text, comments[choice].id))
+    } else {
+        None
+    }
 }
 
 // should return option if they dont pick a comment, or they discard changes
-pub fn remove_comment(assignment: &Assignment, student: &String, question: &Question) -> u64 {
-    print!("\nRemove Comment\n\n");
-    // list all the comments that we have to choose from
-    // return the id
-    0
+pub fn remove_comment(assignment: &Assignment, student: &String, question: &Question) -> Option<u64> {
+    let header = "Remove Comment".to_string();
+    let comments = assignment.question_comments(student, question);
+    let mut menu: Vec<String> = comments.iter()
+        .map(|c| format!("[-{}]\n   {} ", c.deduction, c.text))
+        .collect();
+    menu.push("Cancel".to_string());
+
+    let choice = (get_menu_choice(&header, &menu) - 1) as usize;
+    clear_screen();
+
+    if choice < comments.len() {
+        Some(comments[choice].id)
+    } else {
+        None
+    }
 }

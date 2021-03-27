@@ -171,30 +171,34 @@ impl App {
     }
 
     fn edit_comment(&mut self) {
-        let (deduct, text, id) = display::edit_comment(
+        match display::edit_comment(
             &self.assignment,
             &self.student,
             &self.question,
-        );
-        self.assignment.edit_comment(
-            &self.question,
-            id,
-            deduct,
-            text
-        );
+        ) {
+            Some((deduct, text, id)) => self.assignment.edit_comment(
+                &self.question,
+                id,
+                deduct,
+                text
+            ),
+            _ => ()
+        };
     }
 
     fn remove_comment(&mut self) {
-        let com_id = display::remove_comment(
+        match display::remove_comment(
             &self.assignment,
             &self.student,
             &self.question,
-        );
-        self.assignment.remove_comment_from(
-            &self.student,
-            &self.question,
-            com_id
-        );
+        ) {
+            Some(id) => self.assignment.remove_comment_from(
+                &self.student,
+                &self.question,
+                id
+            ),
+            _ => ()
+        }
     }
 
     fn change_question(&mut self, dx: i32) {
