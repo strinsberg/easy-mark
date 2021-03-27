@@ -1,10 +1,12 @@
 use crate::comment::Comment;
 use crate::comment::Question;
+use serde::{Deserialize, Serialize};
 use std::cmp;
 use std::collections::HashMap;
 use std::convert::TryInto;
+use std::fs::File;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Assignment {
     pub title: String,
     pub course: String,
@@ -120,5 +122,11 @@ impl Assignment {
             .filter(|c| !c.names.contains(student))
             .map(|c| c.clone())
             .collect()
+    }
+
+    pub fn save(&self) {
+        let filename = format!("{}_{}.emark", self.course, self.title).replace(" ", "_");
+        let mut f = File::create(filename).expect("Unable to create file");
+        serde_pickle::ser::to_writer(&mut f, self, true).expect("could not pickle");
     }
 }

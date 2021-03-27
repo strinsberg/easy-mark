@@ -1,6 +1,8 @@
 use crate::assignment::Assignment;
 use crate::comment::Question;
 use read_input::prelude::*;
+use std::fs;
+use std::fs::File;
 use std::process::Command;
 
 pub fn clear_screen() {
@@ -81,12 +83,35 @@ pub fn create_new_assignment() -> Assignment {
 }
 
 pub fn load_assignment() -> Option<Assignment> {
-    print!("\nLoad Asn\n\n");
-    // get list of valid files
-    // show a menu for them
-    // load the chosen one
-    // return option, if none then show menu again
-    Some(Assignment::new("default".to_string(), "none".to_string()))
+    let mut files: Vec<String> = fs::read_dir("./")
+        .unwrap()
+        .filter(|p| {
+            p.as_ref()
+                .unwrap()
+                .path()
+                .display()
+                .to_string()
+                .ends_with(".emark")
+        })
+        .map(|p| p.unwrap().path().display().to_string())
+        .collect();
+
+    if files.len() > 0 {
+        files.push("Exit".to_string());
+        let header = "==== Load Assignment ====".to_string();
+        let choice = (get_menu_choice(&header, &files) - 1) as usize;
+        if choice >= files.len() - 1 {
+            println!("*** Exit ***");
+            None
+        } else {
+            let f = File::open(files[choice].to_string()).expect("Unable to create file");
+            let asn: Assignment = serde_pickle::de::from_reader(f).expect("could not pickle");
+            Some(asn)
+        }
+    } else {
+        println!("*** No easy-mark files ***");
+        None
+    }
 }
 
 pub fn grade_sheet(assignment: &Assignment, student: &String) {
@@ -127,7 +152,7 @@ pub fn new_comment() -> Option<(u32, String)> {
     let deduction: u32 = loop {
         let num: String = input().msg("Deduction: ").get();
         match num.parse::<u32>() {
-            Ok(x) if x >= 0 => break x,
+            Ok(x) => break x,
             _ => println!("\n*** Enter 0 or higher for the deduction ***\n"),
         }
     };

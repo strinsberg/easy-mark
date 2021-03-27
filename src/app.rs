@@ -1,9 +1,10 @@
 use crate::assignment::Assignment;
-use crate::comment::Comment;
 use crate::comment::Question;
 use crate::display;
 use crate::latex;
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct App {
     assignment: Assignment,
     student: String,
@@ -43,7 +44,7 @@ impl App {
                 self.new_student();
             }
             2 => match display::load_assignment() {
-                Some(asn) => self.assignment = asn,
+                Some(asn) => self.set_assignment(asn),
                 None => return (),
             },
             _ => return (),
@@ -51,6 +52,14 @@ impl App {
 
         self.question = self.assignment.questions[self.question_idx as usize].clone();
         self.asn_menu();
+    }
+
+    fn set_assignment(&mut self, assignment: Assignment) {
+        self.assignment = assignment;
+        self.student_idx = 0;
+        self.student = self.assignment.students[self.student_idx as usize].clone();
+        self.question_idx = 0;
+        self.question = self.assignment.questions[self.question_idx as usize].clone();
     }
 
     fn asn_menu(&mut self) {
@@ -86,6 +95,7 @@ impl App {
         self.student = display::get_new_student_name();
         self.assignment.students.push(self.student.clone());
         self.student_idx = (self.assignment.students.len() as u32) - 1;
+        self.assignment.save();
     }
 
     fn change_student(&mut self, dx: i32) {
@@ -131,7 +141,8 @@ impl App {
         match display::new_comment() {
             Some((deduct, text)) => {
                 self.assignment
-                    .new_comment(&self.student, &self.question, deduct, text)
+                    .new_comment(&self.student, &self.question, deduct, text);
+                self.assignment.save();
             }
             _ => (),
         }
@@ -139,9 +150,11 @@ impl App {
 
     fn add_existing_comment(&mut self) {
         match display::choose_existing_comment(&self.assignment, &self.student, &self.question) {
-            Some(id) => self
-                .assignment
-                .add_comment_to(&self.student, &self.question, id),
+            Some(id) => {
+                self.assignment
+                    .add_comment_to(&self.student, &self.question, id);
+                self.assignment.save();
+            }
             _ => (),
         }
     }
@@ -150,7 +163,8 @@ impl App {
         match display::edit_comment(&self.assignment, &self.student, &self.question) {
             Some((deduct, text, id)) => {
                 self.assignment
-                    .edit_comment(&self.question, id, deduct, text)
+                    .edit_comment(&self.question, id, deduct, text);
+                self.assignment.save();
             }
             _ => (),
         };
@@ -158,9 +172,11 @@ impl App {
 
     fn remove_comment(&mut self) {
         match display::remove_comment(&self.assignment, &self.student, &self.question) {
-            Some(id) => self
-                .assignment
-                .remove_comment_from(&self.student, &self.question, id),
+            Some(id) => {
+                self.assignment
+                    .remove_comment_from(&self.student, &self.question, id);
+                self.assignment.save();
+            }
             _ => (),
         }
     }
