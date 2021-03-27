@@ -122,13 +122,12 @@ impl App {
             "Remove Comment".to_string(),
             "Next Question".to_string(),
             "Prev Question".to_string(),
-            "Display Question Comments".to_string(),
-            "Quit".to_string()
+            "Back".to_string()
         ];
 
         loop {
-            // needs question marks and what it is out of
-            let header = format!("Question {}.{}", self.question.num, self.question.part);
+            display::question(&self.assignment, &self.student, &self.question);
+            let header = format!("Grading: {}", self.student);
             let choice = display::get_menu_choice(&header, &menu);
             match choice {
                 1 => self.add_new_comment(),
@@ -137,11 +136,6 @@ impl App {
                 4 => self.remove_comment(),
                 5 => self.change_question(1),
                 6 => self.change_question(-1),
-                7 => display::question(
-                    &self.assignment,
-                    &self.student,
-                    &self.question,
-                ),
                 _ => break,
             }
         }
@@ -160,16 +154,18 @@ impl App {
     }
 
     fn add_existing_comment(&mut self) {
-        let com_id = display::choose_existing_comment(
+        match display::choose_existing_comment(
             &self.assignment,
             &self.student,
             &self.question,
-        );
-        self.assignment.add_comment_to(
-            &self.student,
-            &self.question,
-            com_id
-        );
+        ) {
+            Some(id) => self.assignment.add_comment_to(
+                &self.student,
+                &self.question,
+                id
+            ),
+            _ => ()
+        }
     }
 
     fn edit_comment(&mut self) {

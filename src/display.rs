@@ -2,7 +2,6 @@ use crate::assignment::Assignment;
 use crate::comment::Question;
 use read_input::prelude::*;
 use std::process::Command;
-use std::cmp;
 
 pub fn clear_screen() {
     Command::new("clear").status().unwrap();
@@ -84,12 +83,15 @@ pub fn load_assignment() -> Option<Assignment> {
 }
 
 pub fn grade_sheet(assignment: &Assignment, student: &String) {
-    // show assignment details and student name
-    // get the total assignment grade, and student marks
-    // for each question get all comments for the student
-    // find the total marks and display all comments
-    // order biggest mistakes to notes (consider better way)
-    print!("\nDisplay sheet\n\n");
+    println!("================================================================");
+    println!("{} - {}", assignment.course, assignment.title);
+    println!("{}", student);
+    println!("Total: {}/{}\n", assignment.student_mark(student), assignment.out_of());
+    for q in assignment.questions.iter() {
+        println!("----------------------------------------------------------------");
+        question(assignment, student, &q);
+    }
+    println!("================================================================\n\n");
 }
 
 pub fn question(assignment: &Assignment, student: &String, question: &Question) {
@@ -109,7 +111,6 @@ pub fn question(assignment: &Assignment, student: &String, question: &Question) 
     println!("");
 }
 
-// should be an option if they decide to discard it
 pub fn new_comment() -> Option<(u32, String)> {
     println!("==== Add New Comment ====");
     let deduction: u32 = loop {
@@ -130,13 +131,29 @@ pub fn new_comment() -> Option<(u32, String)> {
     }
 }
 
-// should return option if they dont pick a comment
-pub fn choose_existing_comment(assignment: &Assignment, student: &String, question: &Question) -> u64 {
-    print!("\nAdd Existing\n\n");
-    // get all comments for a question that do not contain student
-    // menu choice for them
-    // return the comment id
-    0
+pub fn choose_existing_comment(assignment: &Assignment, student: &String, question: &Question) -> Option<u64> {
+    let header = "Add Existing Comment".to_string();
+    let comments = assignment.question_comments_unused(student, question);
+
+    if comments.len() == 0 {
+        clear_screen();
+        println!("*** No unused comments ***\n");
+        return None;
+    }
+
+    let mut menu: Vec<String> = comments.iter()
+        .map(|c| format!("[-{}]\n   {} ", c.deduction, c.text))
+        .collect();
+    menu.push("Cancel".to_string());
+
+    let choice = (get_menu_choice(&header, &menu) - 1) as usize;
+    clear_screen();
+
+    if choice < comments.len() {
+        Some(comments[choice].id)
+    } else {
+        None
+    }
 }
 
 pub fn edit_comment(assignment: &Assignment, student: &String, question: &Question) -> Option<(u32, String, u64)> {
@@ -171,7 +188,6 @@ pub fn edit_comment(assignment: &Assignment, student: &String, question: &Questi
     }
 }
 
-// should return option if they dont pick a comment, or they discard changes
 pub fn remove_comment(assignment: &Assignment, student: &String, question: &Question) -> Option<u64> {
     let header = "Remove Comment".to_string();
     let comments = assignment.question_comments(student, question);

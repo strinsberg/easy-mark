@@ -77,6 +77,17 @@ impl Assignment {
         com.text = text;
     }
 
+    pub fn out_of(&self) -> u32 {
+        self.questions.iter().fold(0, |acc, q| acc + q.out_of)
+    }
+
+    pub fn student_mark(&self, student: &String) -> u32 {
+        self.questions
+            .iter()
+            .map(|q| self.question_mark(student, &q))
+            .fold(0, |acc, mark| acc + mark)
+    }
+
     pub fn question_comments(&self, student: &String, question: &Question) -> Vec<Comment> {
         self.comments
             .get(question)
@@ -95,4 +106,13 @@ impl Assignment {
         cmp::max(0, total - deducted).try_into().unwrap()
     }
 
+    pub fn question_comments_unused(&self, student: &String, question: &Question) -> Vec<Comment> {
+        self.comments
+            .get(question)
+            .unwrap()
+            .iter()
+            .filter(|c| !c.names.contains(student))
+            .map(|c| c.clone())
+            .collect()
+    }
 }
