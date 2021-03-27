@@ -15,16 +15,13 @@ pub struct App {
 impl App {
     pub fn new() -> App {
         App {
-            assignment: Assignment::new(
-                "default".to_string(),
-                "none".to_string()
-            ),
+            assignment: Assignment::new("default".to_string(), "none".to_string()),
             student: "none".to_string(),
             student_idx: 0,
             question: Question {
                 num: 1,
                 part: 1,
-                out_of: 0
+                out_of: 0,
             },
             question_idx: 0,
         }
@@ -35,7 +32,7 @@ impl App {
         let menu = vec![
             "New Assignment".to_string(),
             "Load Assignment".to_string(),
-            "Quit".to_string()
+            "Quit".to_string(),
         ];
 
         display::clear_screen();
@@ -44,12 +41,12 @@ impl App {
             1 => {
                 self.assignment = display::create_new_assignment();
                 self.new_student();
-            },
+            }
             2 => match display::load_assignment() {
                 Some(asn) => self.assignment = asn,
-                None => return ()
+                None => return (),
             },
-            _ => return ()
+            _ => return (),
         }
 
         self.question = self.assignment.questions[self.question_idx as usize].clone();
@@ -65,15 +62,11 @@ impl App {
             "Display Current Grade Sheet".to_string(),
             "Dump Grade Sheet To Latex".to_string(),
             "Dump ALL To Latex".to_string(),
-            "Quit".to_string()
+            "Quit".to_string(),
         ];
 
         loop {
-            let header = format!(
-                "{} Menu ({})", 
-                self.assignment.title,
-                self.student
-            );
+            let header = format!("{} Menu ({})", self.assignment.title, self.student);
 
             let choice = display::get_menu_choice(&header, &menu);
             match choice {
@@ -81,14 +74,8 @@ impl App {
                 2 => self.new_student(),
                 3 => self.change_student(1),
                 4 => self.change_student(-1),
-                5 => display::grade_sheet(
-                    &self.assignment,
-                    &self.student
-                ),
-                6 => latex::dump_grade_sheet(
-                    &self.assignment,
-                    &self.student
-                ),
+                5 => display::grade_sheet(&self.assignment, &self.student),
+                6 => latex::dump_grade_sheet(&self.assignment, &self.student),
                 7 => latex::dump_all_grade_sheets(&self.assignment),
                 _ => break,
             }
@@ -103,8 +90,7 @@ impl App {
 
     fn change_student(&mut self, dx: i32) {
         if dx >= 0 {
-            let x = (self.student_idx + 1)
-                % self.assignment.students.len() as u32;
+            let x = (self.student_idx + 1) % self.assignment.students.len() as u32;
             self.student_idx = x;
         } else if self.student_idx == 0 {
             self.student_idx = (self.assignment.students.len() as u32) - 1;
@@ -122,7 +108,7 @@ impl App {
             "Remove Comment".to_string(),
             "Next Question".to_string(),
             "Prev Question".to_string(),
-            "Back".to_string()
+            "Back".to_string(),
         ];
 
         loop {
@@ -143,66 +129,45 @@ impl App {
 
     fn add_new_comment(&mut self) {
         match display::new_comment() {
-            Some((deduct, text)) => self.assignment.new_comment(
-                &self.student,
-                &self.question,
-                deduct,
-                text,
-            ),
-            _ => ()
+            Some((deduct, text)) => {
+                self.assignment
+                    .new_comment(&self.student, &self.question, deduct, text)
+            }
+            _ => (),
         }
     }
 
     fn add_existing_comment(&mut self) {
-        match display::choose_existing_comment(
-            &self.assignment,
-            &self.student,
-            &self.question,
-        ) {
-            Some(id) => self.assignment.add_comment_to(
-                &self.student,
-                &self.question,
-                id
-            ),
-            _ => ()
+        match display::choose_existing_comment(&self.assignment, &self.student, &self.question) {
+            Some(id) => self
+                .assignment
+                .add_comment_to(&self.student, &self.question, id),
+            _ => (),
         }
     }
 
     fn edit_comment(&mut self) {
-        match display::edit_comment(
-            &self.assignment,
-            &self.student,
-            &self.question,
-        ) {
-            Some((deduct, text, id)) => self.assignment.edit_comment(
-                &self.question,
-                id,
-                deduct,
-                text
-            ),
-            _ => ()
+        match display::edit_comment(&self.assignment, &self.student, &self.question) {
+            Some((deduct, text, id)) => {
+                self.assignment
+                    .edit_comment(&self.question, id, deduct, text)
+            }
+            _ => (),
         };
     }
 
     fn remove_comment(&mut self) {
-        match display::remove_comment(
-            &self.assignment,
-            &self.student,
-            &self.question,
-        ) {
-            Some(id) => self.assignment.remove_comment_from(
-                &self.student,
-                &self.question,
-                id
-            ),
-            _ => ()
+        match display::remove_comment(&self.assignment, &self.student, &self.question) {
+            Some(id) => self
+                .assignment
+                .remove_comment_from(&self.student, &self.question, id),
+            _ => (),
         }
     }
 
     fn change_question(&mut self, dx: i32) {
         if dx >= 0 {
-            let x = (self.question_idx + 1)
-                % self.assignment.questions.len() as u32;
+            let x = (self.question_idx + 1) % self.assignment.questions.len() as u32;
             self.question_idx = x;
         } else if self.question_idx == 0 {
             self.question_idx = (self.assignment.questions.len() as u32) - 1;
@@ -212,4 +177,3 @@ impl App {
         self.question = self.assignment.questions[self.question_idx as usize].clone();
     }
 }
-

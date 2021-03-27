@@ -12,10 +12,14 @@ impl Comment {
     pub fn new(id: u64, deduction: u32, text: String, student: String) -> Comment {
         let mut names = HashSet::new();
         names.insert(student);
-        Comment { id, deduction, text, names }
+        Comment {
+            id,
+            deduction,
+            text,
+            names,
+        }
     }
 }
-
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Question {
@@ -23,4 +27,3 @@ pub struct Question {
     pub part: u32,
     pub out_of: u32,
 }
-

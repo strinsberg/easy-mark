@@ -1,9 +1,8 @@
 use crate::comment::Comment;
 use crate::comment::Question;
-use std::collections::HashMap;
 use std::cmp;
+use std::collections::HashMap;
 use std::convert::TryInto;
-
 
 #[derive(Debug)]
 pub struct Assignment {
@@ -28,21 +27,24 @@ impl Assignment {
     }
 
     pub fn new_question(&mut self, num: u32, part: u32, out_of: u32) {
-        let q = Question{ num, part, out_of };
+        let q = Question { num, part, out_of };
         assert!(!self.comments.contains_key(&q));
 
         self.questions.push(q.clone());
         self.comments.insert(q, Vec::new());
     }
 
-    pub fn new_comment(&mut self, student: &String, question: &Question, deduction: u32, text: String) {
+    pub fn new_comment(
+        &mut self,
+        student: &String,
+        question: &Question,
+        deduction: u32,
+        text: String,
+    ) {
         let com = Comment::new(self.next_id, deduction, text, student.clone());
         self.next_id += 1;
 
-        self.comments
-            .get_mut(question)
-            .unwrap()
-            .push(com);
+        self.comments.get_mut(question).unwrap().push(com);
     }
 
     pub fn add_comment_to(&mut self, student: &String, question: &Question, id: u64) {
@@ -52,7 +54,8 @@ impl Assignment {
             .iter_mut()
             .find(|c| c.id == id)
             .unwrap()
-            .names.insert(student.clone());
+            .names
+            .insert(student.clone());
     }
 
     pub fn remove_comment_from(&mut self, student: &String, question: &Question, id: u64) {
@@ -62,12 +65,14 @@ impl Assignment {
             .iter_mut()
             .find(|c| c.id == id)
             .unwrap()
-            .names.remove(student);
-        // if the comment has 0 names now, remove... names.retain(|c| c != com);
+            .names
+            .remove(student);
+        // if the comment has 0 names now, remove... names.retain(|c| c != com); ???
     }
 
     pub fn edit_comment(&mut self, question: &Question, id: u64, deduction: u32, text: String) {
-        let mut com = self.comments
+        let mut com = self
+            .comments
             .get_mut(question)
             .unwrap()
             .iter_mut()
@@ -100,9 +105,10 @@ impl Assignment {
 
     pub fn question_mark(&self, student: &String, question: &Question) -> u32 {
         let total = question.out_of as i32;
-        let deducted = self.question_comments(student, question)
-                           .iter()
-                           .fold(0, |acc, c| acc + c.deduction) as i32;
+        let deducted = self
+            .question_comments(student, question)
+            .iter()
+            .fold(0, |acc, c| acc + c.deduction) as i32;
         cmp::max(0, total - deducted).try_into().unwrap()
     }
 

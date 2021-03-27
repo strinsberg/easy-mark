@@ -7,6 +7,16 @@ pub fn clear_screen() {
     Command::new("clear").status().unwrap();
 }
 
+pub fn non_empty_input(prompt: String) -> String {
+    loop {
+        let res: String = input().msg(&prompt).get();
+        if res != "".to_string() {
+            return res;
+        }
+        println!("\n*** Input cannot be empty ***\n");
+    }
+}
+
 pub fn get_menu_choice(header: &String, menu: &Vec<String>) -> u32 {
     let num = loop {
         println!("==== {} ====", header);
@@ -26,26 +36,26 @@ pub fn get_menu_choice(header: &String, menu: &Vec<String>) -> u32 {
 
 pub fn get_new_student_name() -> String {
     print!("==== New Student ====\n");
-    let name = input().msg("Student Name: ").get();
+    let name = non_empty_input("Student Name: ".to_string());
     clear_screen();
     name
 }
 
 pub fn create_new_assignment() -> Assignment {
     println!("==== New Assignment ====");
-    let name = input().msg("Assignment Name: ").get();
-    let course = input().msg("Course: ").get();
+    let name = non_empty_input("Assignment Name: ".to_string());
+    let course = non_empty_input("Course: ".to_string());
     let mut asn = Assignment::new(name, course);
 
     let num_q: u32 = loop {
         let choice: String = input().msg("Number of Questions: ").get();
         match choice.parse::<u32>() {
-            Ok(x) => break x,
-            _ => println!("\n*** Please choose a number ***\n"),
+            Ok(x) if x > 0 => break x,
+            _ => println!("\n*** Please choose a number greater than 0 ***\n"),
         }
     };
 
-    for i in 1..(num_q+1) {
+    for i in 1..(num_q + 1) {
         println!("\n==== Marks for Question {} (0 to finish) ====", i);
         let mut part_num = 1;
         loop {
@@ -53,15 +63,15 @@ pub fn create_new_assignment() -> Assignment {
             match choice.parse::<u32>() {
                 Ok(x) if x <= 0 => {
                     if part_num > 1 {
-                        break
+                        break;
                     } else {
                         println!("\n*** Each Question Must have at least 1 part ***\n");
                     }
-                },
+                }
                 Ok(x) => {
                     asn.new_question(i, part_num, x);
                     part_num += 1;
-                },
+                }
                 _ => println!("\n*** Please choose a number ***\n"),
             }
         }
@@ -76,17 +86,18 @@ pub fn load_assignment() -> Option<Assignment> {
     // show a menu for them
     // load the chosen one
     // return option, if none then show menu again
-    Some(Assignment::new(
-        "default".to_string(),
-        "none".to_string()
-    ))
+    Some(Assignment::new("default".to_string(), "none".to_string()))
 }
 
 pub fn grade_sheet(assignment: &Assignment, student: &String) {
     println!("================================================================");
     println!("{} - {}", assignment.course, assignment.title);
     println!("{}", student);
-    println!("Total: {}/{}\n", assignment.student_mark(student), assignment.out_of());
+    println!(
+        "Total: {}/{}\n",
+        assignment.student_mark(student),
+        assignment.out_of()
+    );
     for q in assignment.questions.iter() {
         println!("----------------------------------------------------------------");
         question(assignment, student, &q);
@@ -114,24 +125,28 @@ pub fn question(assignment: &Assignment, student: &String, question: &Question) 
 pub fn new_comment() -> Option<(u32, String)> {
     println!("==== Add New Comment ====");
     let deduction: u32 = loop {
-         let num: String = input().msg("Deduction: ").get();
-         match num.parse::<u32>() {
-             Ok(x) if x >= 0 => break x,
-             _ => println!("\n*** Enter 0 or higher for the deduction ***\n"),
-         }
+        let num: String = input().msg("Deduction: ").get();
+        match num.parse::<u32>() {
+            Ok(x) if x >= 0 => break x,
+            _ => println!("\n*** Enter 0 or higher for the deduction ***\n"),
+        }
     };
 
-    let text: String = input().msg("Comment: ").get();
-    let satisfied: String = input().msg("Satisfied? (y/n): ").get();
+    let text: String = non_empty_input("Comment: ".to_string());
+    let satisfied: String = non_empty_input("Satisfied? (y/n): ".to_string());
     clear_screen();
 
     match satisfied.to_lowercase() == "y".to_string() {
         true => Some((deduction, text)),
-        false => None
+        false => None,
     }
 }
 
-pub fn choose_existing_comment(assignment: &Assignment, student: &String, question: &Question) -> Option<u64> {
+pub fn choose_existing_comment(
+    assignment: &Assignment,
+    student: &String,
+    question: &Question,
+) -> Option<u64> {
     let header = "Add Existing Comment".to_string();
     let comments = assignment.question_comments_unused(student, question);
 
@@ -141,7 +156,8 @@ pub fn choose_existing_comment(assignment: &Assignment, student: &String, questi
         return None;
     }
 
-    let mut menu: Vec<String> = comments.iter()
+    let mut menu: Vec<String> = comments
+        .iter()
         .map(|c| format!("[-{}]\n   {} ", c.deduction, c.text))
         .collect();
     menu.push("Cancel".to_string());
@@ -156,7 +172,11 @@ pub fn choose_existing_comment(assignment: &Assignment, student: &String, questi
     }
 }
 
-pub fn edit_comment(assignment: &Assignment, student: &String, question: &Question) -> Option<(u32, String, u64)> {
+pub fn edit_comment(
+    assignment: &Assignment,
+    student: &String,
+    question: &Question,
+) -> Option<(u32, String, u64)> {
     let header = "Edit Comment".to_string();
     let comments = assignment.question_comments(student, question);
 
@@ -166,7 +186,8 @@ pub fn edit_comment(assignment: &Assignment, student: &String, question: &Questi
         return None;
     }
 
-    let mut menu: Vec<String> = comments.iter()
+    let mut menu: Vec<String> = comments
+        .iter()
         .map(|c| format!("[-{}]\n   {} ", c.deduction, c.text))
         .collect();
     menu.push("Cancel".to_string());
@@ -181,24 +202,29 @@ pub fn edit_comment(assignment: &Assignment, student: &String, question: &Questi
 
         match new_comment() {
             Some((deduct, text)) => Some((deduct, text, comments[choice].id)),
-            _ => None
+            _ => None,
         }
     } else {
         None
     }
 }
 
-pub fn remove_comment(assignment: &Assignment, student: &String, question: &Question) -> Option<u64> {
+pub fn remove_comment(
+    assignment: &Assignment,
+    student: &String,
+    question: &Question,
+) -> Option<u64> {
     let header = "Remove Comment".to_string();
     let comments = assignment.question_comments(student, question);
-    
+
     if comments.len() == 0 {
         clear_screen();
         println!("*** No comments added yet ***\n");
         return None;
     }
 
-    let mut menu: Vec<String> = comments.iter()
+    let mut menu: Vec<String> = comments
+        .iter()
         .map(|c| format!("[-{}]\n   {} ", c.deduction, c.text))
         .collect();
     menu.push("Cancel".to_string());
