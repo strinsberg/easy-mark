@@ -28,6 +28,7 @@ impl App {
         }
     }
 
+    // Run and Main Menu /////////////////////////////////////////////////////
     pub fn run(&mut self) {
         let header = "Main Menu".to_string();
         let menu = vec![
@@ -71,6 +72,7 @@ impl App {
         serde_pickle::ser::to_writer(&mut f, &self.assignment, true).expect("could not pickle");
     }
 
+    // Assignment menu ///////////////////////////////////////////////////////
     fn asn_menu(&mut self) {
         let menu = vec![
             "Start Grading".to_string(),
@@ -119,6 +121,7 @@ impl App {
         self.student = self.assignment.get_student_at(self.student_idx);
     }
 
+    // Question Menu /////////////////////////////////////////////////////////
     fn question_menu(&mut self) {
         let menu = vec![
             "Add New Comment".to_string(),

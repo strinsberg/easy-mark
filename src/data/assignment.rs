@@ -21,6 +21,7 @@ impl Assignment {
         }
     }
 
+    // Students //////////////////////////////////////////////////////////////
     pub fn num_students(&self) -> u32 {
         self.students.len() as u32
     }
@@ -33,21 +34,26 @@ impl Assignment {
         self.students[idx as usize].clone()
     }
 
+    pub fn get_students(&self) -> Vec<String> {
+        self.students.iter().map(|s| s.clone()).collect()
+    }
+
     pub fn add_student(&mut self, student: &str) {
         assert!(!self.student_exists(student));
         self.students.push(student.to_string());
     }
 
-    pub fn get_students(&self) -> Vec<String> {
-        self.students.iter().map(|s| s.clone()).collect()
-    }
-
+    // Questions /////////////////////////////////////////////////////////////
     pub fn num_questions(&self) -> u32 {
         self.questions.len() as u32
     }
 
     pub fn question_exists(&self, question: &Question) -> bool {
         self.questions.iter().any(|qc| &qc.question == question)
+    }
+
+    pub fn get_question_at(&self, idx: u32) -> Question {
+        self.questions[idx as usize].question.clone()
     }
 
     pub fn get_questions(&self) -> Vec<Question> {
@@ -67,28 +73,7 @@ impl Assignment {
         });
     }
 
-    pub fn get_question_at(&self, idx: u32) -> Question {
-        self.questions[idx as usize].question.clone()
-    }
-
-    fn get_comments_mut(&mut self, question: &Question) -> &mut Vec<Comment> {
-        &mut self
-            .questions
-            .iter_mut()
-            .find(|qc| &qc.question == question)
-            .unwrap()
-            .comments
-    }
-
-    fn get_comments(&self, question: &Question) -> &Vec<Comment> {
-        &self
-            .questions
-            .iter()
-            .find(|qc| &qc.question == question)
-            .unwrap()
-            .comments
-    }
-
+    // Comments //////////////////////////////////////////////////////////////
     pub fn new_comment(
         &mut self,
         student: &str,
@@ -136,6 +121,41 @@ impl Assignment {
         com.text = text;
     }
 
+    pub fn students_comments_for(&self, student: &str, question: &Question) -> Vec<Comment> {
+        self.get_comments(question)
+            .iter()
+            .filter(|c| c.has_student(student))
+            .map(|c| c.clone())
+            .collect()
+    }
+
+    pub fn unused_comments_for(&self, student: &str, question: &Question) -> Vec<Comment> {
+        self.get_comments(question)
+            .iter()
+            .filter(|c| !c.has_student(student))
+            .map(|c| c.clone())
+            .collect()
+    }
+
+    fn get_comments_mut(&mut self, question: &Question) -> &mut Vec<Comment> {
+        &mut self
+            .questions
+            .iter_mut()
+            .find(|qc| &qc.question == question)
+            .unwrap()
+            .comments
+    }
+
+    fn get_comments(&self, question: &Question) -> &Vec<Comment> {
+        &self
+            .questions
+            .iter()
+            .find(|qc| &qc.question == question)
+            .unwrap()
+            .comments
+    }
+
+    // Marks /////////////////////////////////////////////////////////////////
     pub fn out_of(&self) -> u32 {
         self.questions
             .iter()
@@ -161,22 +181,6 @@ impl Assignment {
         } else {
             0.0
         }
-    }
-
-    pub fn students_comments_for(&self, student: &str, question: &Question) -> Vec<Comment> {
-        self.get_comments(question)
-            .iter()
-            .filter(|c| c.has_student(student))
-            .map(|c| c.clone())
-            .collect()
-    }
-
-    pub fn unused_comments_for(&self, student: &str, question: &Question) -> Vec<Comment> {
-        self.get_comments(question)
-            .iter()
-            .filter(|c| !c.has_student(student))
-            .map(|c| c.clone())
-            .collect()
     }
 }
 
