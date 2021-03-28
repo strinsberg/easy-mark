@@ -55,7 +55,6 @@ dependencies = [
 name = "easy_mark"
 version = "0.1.0"
 dependencies = [
- "read_input",
  "rustyline",
  "serde",
  "serde-pickle",
@@ -193,12 +192,6 @@ dependencies = [
  "endian-type",
  "nibble_vec",
 ]
-
-[[package]]
-name = "read_input"
-version = "0.8.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b57518cc6538a2eb7dce826e24fa51d0b7cf8e744ee10c7f56259cdec40050e5"
 
 [[package]]
 name = "redox_syscall"

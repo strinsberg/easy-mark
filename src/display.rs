@@ -1,6 +1,5 @@
 use crate::assignment::Assignment;
 use crate::comment::Question;
-use read_input::prelude::*;
 use std::fs;
 use std::fs::File;
 use std::process::Command;
@@ -9,13 +8,42 @@ pub fn clear_screen() {
     Command::new("clear").status().unwrap();
 }
 
-pub fn non_empty_input(prompt: String) -> String {
+pub fn input(prompt: &str) -> String {
+    readline_with_initial(prompt, ("", ""))
+}
+
+pub fn readline_with_initial(prompt: &str, initial: (&str, &str)) -> String {
     loop {
-        let res: String = input().msg(&prompt).get();
-        if res != "".to_string() {
+        let mut rl = rustyline::Editor::<()>::new();
+        let res: String = rl
+            .readline_with_initial(prompt, initial)
+            .unwrap()
+            .trim()
+            .to_string();
+        if !res.is_empty() {
             return res;
         }
         println!("\n*** Input cannot be empty ***\n");
+    }
+}
+
+pub fn get_u32(prompt: &str, error_msg: &str) -> u32 {
+    loop {
+        let num: String = input(prompt);
+        match num.parse::<u32>() {
+            Ok(x) => break x,
+            _ => println!("\n*** {} ***\n", error_msg),
+        }
+    }
+}
+
+pub fn get_f32(prompt: &str, error_msg: &str) -> f32 {
+    loop {
+        let num: String = input(prompt);
+        match num.parse::<f32>() {
+            Ok(x) => break x,
+            _ => println!("\n*** {} ***\n", error_msg),
+        }
     }
 }
 
@@ -26,10 +54,9 @@ pub fn get_menu_choice(header: &String, menu: &Vec<String>) -> u32 {
             println!("{}. {}", i + 1, item);
         }
 
-        let choice: String = input().msg("Choice: ").get();
-        match choice.parse::<u32>() {
-            Ok(x) if x != 0 && x <= menu.len() as u32 => break x,
-            _ => println!("\n*** Invalid Choice ***\n"),
+        match get_u32("Choice: ", "Input must be a number") {
+            x if x != 0 && x <= menu.len() as u32 => break x,
+            _ => println!("\n*** Choice must be from the menu ***\n"),
         }
     };
     clear_screen();
@@ -38,21 +65,20 @@ pub fn get_menu_choice(header: &String, menu: &Vec<String>) -> u32 {
 
 pub fn get_new_student_name() -> String {
     print!("==== New Student ====\n");
-    let name = non_empty_input("Student Name: ".to_string());
+    let name = input("Student Name: ");
     clear_screen();
     name
 }
 
 pub fn create_new_assignment() -> Assignment {
     println!("==== New Assignment ====");
-    let name = non_empty_input("Assignment Name: ".to_string());
-    let course = non_empty_input("Course: ".to_string());
+    let name = input("Assignment Name: ");
+    let course = input("Course: ");
     let mut asn = Assignment::new(name, course);
 
     let num_q: u32 = loop {
-        let choice: String = input().msg("Number of Questions: ").get();
-        match choice.parse::<u32>() {
-            Ok(x) if x > 0 => break x,
+        match get_u32("Number of Questions: ", "Input must be a positive number") {
+            x if x > 0 => break x,
             _ => println!("\n*** Please choose a number greater than 0 ***\n"),
         }
     };
@@ -61,20 +87,21 @@ pub fn create_new_assignment() -> Assignment {
         println!("\n==== Marks for Question {} (0 to finish) ====", i);
         let mut part_num = 1;
         loop {
-            let choice: String = input().msg(format!("Marks for {}.{}: ", i, part_num)).get();
-            match choice.parse::<u32>() {
-                Ok(x) if x <= 0 => {
+            match get_u32(
+                &format!("Marks for {}.{}: ", i, part_num),
+                "Input must be a positive number",
+            ) {
+                x if x <= 0 => {
                     if part_num > 1 {
                         break;
                     } else {
                         println!("\n*** Each Question Must have at least 1 part ***\n");
                     }
                 }
-                Ok(x) => {
+                x => {
                     asn.new_question(i, part_num, x);
                     part_num += 1;
                 }
-                _ => println!("\n*** Please choose a number ***\n"),
             }
         }
     }
@@ -152,15 +179,15 @@ pub fn question(assignment: &Assignment, student: &String, question: &Question) 
 pub fn new_comment() -> Option<(f32, String)> {
     println!("==== Add New Comment ====");
     let deduction: f32 = loop {
-        let num: String = input().msg("Deduction: ").get();
-        match num.parse::<f32>() {
-            Ok(x) => break x,
-            _ => println!("\n*** Enter 0 or higher for the deduction ***\n"),
+        match get_f32("Deduction: ", "Must be a whole or decimal number") {
+            x if x < 0.0 => println!(
+            "*** Deductions must be 0 or greater. Will be applied as negative when calculating marks ***\n"
+        ),
+            x => break x,
         }
     };
-
-    let text: String = non_empty_input("Comment: ".to_string());
-    let satisfied: String = non_empty_input("Satisfied? (y/n): ".to_string());
+    let text: String = input("Comment: ");
+    let satisfied: String = input("Satisfied? (y/n): ");
     clear_screen();
 
     match satisfied.to_lowercase() == "y".to_string() {
@@ -241,7 +268,7 @@ pub fn edit_comment(
         let text: String = rl
             .readline_with_initial("Comment: ", (&comments[choice].text, ""))
             .unwrap();
-        let satisfied: String = non_empty_input("Satisfied? (y/n): ".to_string());
+        let satisfied: String = input("Satisfied? (y/n): ");
         clear_screen();
 
         match satisfied.to_lowercase() == "y".to_string() {
