@@ -3,6 +3,7 @@ use crate::comment::Question;
 use crate::display;
 use crate::latex;
 use serde::{Deserialize, Serialize};
+use std::fs::File;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct App {
@@ -36,22 +37,24 @@ impl App {
             "Quit".to_string(),
         ];
 
-        display::clear_screen();
-        let choice = display::get_menu_choice(&header, &menu);
-        match choice {
-            1 => {
-                self.assignment = display::create_new_assignment();
-                self.new_student();
+        loop {
+            display::clear_screen();
+            let choice = display::get_menu_choice(&header, &menu);
+            match choice {
+                1 => {
+                    self.assignment = display::create_new_assignment();
+                    self.new_student();
+                }
+                2 => match display::load_assignment() {
+                    Some(asn) => self.set_assignment(asn),
+                    None => continue,
+                },
+                _ => break,
             }
-            2 => match display::load_assignment() {
-                Some(asn) => self.set_assignment(asn),
-                None => return (),
-            },
-            _ => return (),
-        }
 
-        self.question = self.assignment.questions[self.question_idx as usize].clone();
-        self.asn_menu();
+            self.question = self.assignment.questions[self.question_idx as usize].clone();
+            self.asn_menu();
+        }
     }
 
     fn set_assignment(&mut self, assignment: Assignment) {
@@ -60,6 +63,13 @@ impl App {
         self.student = self.assignment.students[self.student_idx as usize].clone();
         self.question_idx = 0;
         self.question = self.assignment.questions[self.question_idx as usize].clone();
+    }
+
+    fn save_assignment(&self) {
+        let filename =
+            format!("{}_{}.emark", self.assignment.course, self.assignment.title).replace(" ", "_");
+        let mut f = File::create(filename).expect("Unable to create file");
+        serde_pickle::ser::to_writer(&mut f, &self.assignment, true).expect("could not pickle");
     }
 
     fn asn_menu(&mut self) {
@@ -71,7 +81,7 @@ impl App {
             "Display Current Grade Sheet".to_string(),
             "Dump Grade Sheet To Latex".to_string(),
             "Dump ALL To Latex".to_string(),
-            "Quit".to_string(),
+            "Back".to_string(),
         ];
 
         loop {
@@ -95,7 +105,7 @@ impl App {
         self.student = display::get_new_student_name();
         self.assignment.students.push(self.student.clone());
         self.student_idx = (self.assignment.students.len() as u32) - 1;
-        self.assignment.save();
+        self.save_assignment();
     }
 
     fn change_student(&mut self, dx: i32) {
@@ -142,7 +152,7 @@ impl App {
             Some((deduct, text)) => {
                 self.assignment
                     .new_comment(&self.student, &self.question, deduct, text);
-                self.assignment.save();
+                self.save_assignment();
             }
             _ => (),
         }
@@ -153,7 +163,7 @@ impl App {
             Some(id) => {
                 self.assignment
                     .add_comment_to(&self.student, &self.question, id);
-                self.assignment.save();
+                self.save_assignment();
             }
             _ => (),
         }
@@ -164,7 +174,7 @@ impl App {
             Some((deduct, text, id)) => {
                 self.assignment
                     .edit_comment(&self.question, id, deduct, text);
-                self.assignment.save();
+                self.save_assignment();
             }
             _ => (),
         };
@@ -175,7 +185,7 @@ impl App {
             Some(id) => {
                 self.assignment
                     .remove_comment_from(&self.student, &self.question, id);
-                self.assignment.save();
+                self.save_assignment();
             }
             _ => (),
         }

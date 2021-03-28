@@ -20,6 +20,14 @@ impl Comment {
             names,
         }
     }
+
+    pub fn to_latex(&self) -> String {
+        if self.deduction > 0 {
+            format!("\\item[\\color{{red}}-{}] {}", self.deduction, self.text)
+        } else {
+            format!("\\item[Note] {}", self.text)
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]

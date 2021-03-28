@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::cmp;
 use std::collections::HashMap;
 use std::convert::TryInto;
-use std::fs::File;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Assignment {
@@ -124,9 +123,9 @@ impl Assignment {
             .collect()
     }
 
-    pub fn save(&self) {
-        let filename = format!("{}_{}.emark", self.course, self.title).replace(" ", "_");
-        let mut f = File::create(filename).expect("Unable to create file");
-        serde_pickle::ser::to_writer(&mut f, self, true).expect("could not pickle");
+    pub fn total_mark(&self, student: &String) -> u32 {
+        self.questions
+            .iter()
+            .fold(0, |acc, q| acc + self.question_mark(student, q))
     }
 }
