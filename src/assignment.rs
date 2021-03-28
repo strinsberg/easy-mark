@@ -1,9 +1,7 @@
 use crate::comment::Comment;
 use crate::comment::Question;
 use serde::{Deserialize, Serialize};
-use std::cmp;
 use std::collections::HashMap;
-use std::convert::TryInto;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Assignment {
@@ -39,7 +37,7 @@ impl Assignment {
         &mut self,
         student: &String,
         question: &Question,
-        deduction: u32,
+        deduction: f32,
         text: String,
     ) {
         let com = Comment::new(self.next_id, deduction, text, student.clone());
@@ -71,7 +69,7 @@ impl Assignment {
         // if the comment has 0 names now, remove... names.retain(|c| c != com); ???
     }
 
-    pub fn edit_comment(&mut self, question: &Question, id: u64, deduction: u32, text: String) {
+    pub fn edit_comment(&mut self, question: &Question, id: u64, deduction: f32, text: String) {
         let mut com = self
             .comments
             .get_mut(question)
@@ -87,13 +85,6 @@ impl Assignment {
         self.questions.iter().fold(0, |acc, q| acc + q.out_of)
     }
 
-    pub fn student_mark(&self, student: &String) -> u32 {
-        self.questions
-            .iter()
-            .map(|q| self.question_mark(student, &q))
-            .fold(0, |acc, mark| acc + mark)
-    }
-
     pub fn question_comments(&self, student: &String, question: &Question) -> Vec<Comment> {
         self.comments
             .get(question)
@@ -104,13 +95,19 @@ impl Assignment {
             .collect()
     }
 
-    pub fn question_mark(&self, student: &String, question: &Question) -> u32 {
-        let total = question.out_of as i32;
+    pub fn question_mark(&self, student: &String, question: &Question) -> f32 {
+        let total = question.out_of as f32;
         let deducted = self
             .question_comments(student, question)
             .iter()
-            .fold(0, |acc, c| acc + c.deduction) as i32;
-        cmp::max(0, total - deducted).try_into().unwrap()
+            .fold(0.0, |acc, c| acc + c.deduction);
+
+        let res = total - deducted;
+        if res > 0.0 {
+            res
+        } else {
+            0.0
+        }
     }
 
     pub fn question_comments_unused(&self, student: &String, question: &Question) -> Vec<Comment> {
@@ -123,9 +120,9 @@ impl Assignment {
             .collect()
     }
 
-    pub fn total_mark(&self, student: &String) -> u32 {
+    pub fn total_mark(&self, student: &String) -> f32 {
         self.questions
             .iter()
-            .fold(0, |acc, q| acc + self.question_mark(student, q))
+            .fold(0.0, |acc, q| acc + self.question_mark(student, q))
     }
 }

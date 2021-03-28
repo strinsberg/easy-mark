@@ -123,7 +123,7 @@ pub fn grade_sheet(assignment: &Assignment, student: &String) {
     println!("{}", student);
     println!(
         "Total: {}/{}\n",
-        assignment.student_mark(student),
+        assignment.total_mark(student),
         assignment.out_of()
     );
     for q in assignment.questions.iter() {
@@ -150,11 +150,11 @@ pub fn question(assignment: &Assignment, student: &String, question: &Question) 
     println!("");
 }
 
-pub fn new_comment() -> Option<(u32, String)> {
+pub fn new_comment() -> Option<(f32, String)> {
     println!("==== Add New Comment ====");
-    let deduction: u32 = loop {
+    let deduction: f32 = loop {
         let num: String = input().msg("Deduction: ").get();
-        match num.parse::<u32>() {
+        match num.parse::<f32>() {
             Ok(x) => break x,
             _ => println!("\n*** Enter 0 or higher for the deduction ***\n"),
         }
@@ -204,7 +204,7 @@ pub fn edit_comment(
     assignment: &Assignment,
     student: &String,
     question: &Question,
-) -> Option<(u32, String, u64)> {
+) -> Option<(f32, String, u64)> {
     let header = "Edit Comment".to_string();
     let comments = assignment.question_comments(student, question);
 

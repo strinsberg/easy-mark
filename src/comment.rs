@@ -4,13 +4,13 @@ use std::collections::HashSet;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Comment {
     pub id: u64,
-    pub deduction: u32,
+    pub deduction: f32,
     pub text: String,
     pub names: HashSet<String>,
 }
 
 impl Comment {
-    pub fn new(id: u64, deduction: u32, text: String, student: String) -> Comment {
+    pub fn new(id: u64, deduction: f32, text: String, student: String) -> Comment {
         let mut names = HashSet::new();
         names.insert(student);
         Comment {
@@ -22,7 +22,7 @@ impl Comment {
     }
 
     pub fn to_latex(&self) -> String {
-        if self.deduction > 0 {
+        if self.deduction > 0.0 {
             format!("\\item[\\color{{red}}-{}] {}", self.deduction, self.text)
         } else {
             format!("\\item[Note] {}", self.text)
