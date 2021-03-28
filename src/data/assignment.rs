@@ -81,20 +81,11 @@ impl Assignment {
         let com = Comment::new(self.next_id, deduction, text, student.to_string());
         self.next_id += 1;
 
-        self.questions
-            .iter_mut()
-            .find(|qc| &qc.question == question)
-            .unwrap()
-            .comments
-            .push(com);
+        self.get_comments_mut(question).push(com);
     }
 
     pub fn add_comment_to(&mut self, student: &str, question: &Question, id: u64) {
-        self.questions
-            .iter_mut()
-            .find(|qc| &qc.question == question)
-            .unwrap()
-            .comments
+        self.get_comments_mut(question)
             .iter_mut()
             .find(|c| c.id == id)
             .unwrap()
@@ -104,11 +95,7 @@ impl Assignment {
     pub fn remove_comment_from(&mut self, student: &str, question: &Question, id: u64) {
         let (id, empty) = {
             let com = self
-                .questions
-                .iter_mut()
-                .find(|qc| &qc.question == question)
-                .unwrap()
-                .comments
+                .get_comments_mut(question)
                 .iter_mut()
                 .find(|c| c.id == id)
                 .unwrap();
@@ -117,22 +104,13 @@ impl Assignment {
             (com.id, com.empty())
         };
         if empty {
-            self.questions
-                .iter_mut()
-                .find(|qc| &qc.question == question)
-                .unwrap()
-                .comments
-                .retain(|c| c.id != id);
+            self.get_comments_mut(question).retain(|c| c.id != id);
         }
     }
 
     pub fn edit_comment(&mut self, question: &Question, id: u64, deduction: f32, text: String) {
         let mut com = self
-            .questions
-            .iter_mut()
-            .find(|qc| &qc.question == question)
-            .unwrap()
-            .comments
+            .get_comments_mut(question)
             .iter_mut()
             .find(|c| c.id == id)
             .unwrap();
@@ -147,21 +125,26 @@ impl Assignment {
     }
 
     pub fn question_comments(&self, student: &str, question: &Question) -> Vec<Comment> {
-        self.questions
-            .iter()
-            .find(|qc| &qc.question == question)
-            .unwrap()
-            .comments
+        self.get_comments(question)
             .iter()
             .filter(|c| c.has_student(student))
             .map(|c| c.clone())
             .collect()
     }
 
-    pub fn get_comments_mut(&mut self, question: &Question) -> &mut Vec<Comment> {
+    fn get_comments_mut(&mut self, question: &Question) -> &mut Vec<Comment> {
         &mut self
             .questions
             .iter_mut()
+            .find(|qc| &qc.question == question)
+            .unwrap()
+            .comments
+    }
+
+    fn get_comments(&self, question: &Question) -> &Vec<Comment> {
+        &self
+            .questions
+            .iter()
             .find(|qc| &qc.question == question)
             .unwrap()
             .comments
@@ -183,11 +166,7 @@ impl Assignment {
     }
 
     pub fn question_comments_unused(&self, student: &str, question: &Question) -> Vec<Comment> {
-        self.questions
-            .iter()
-            .find(|qc| &qc.question == question)
-            .unwrap()
-            .comments
+        self.get_comments(question)
             .iter()
             .filter(|c| !c.has_student(student))
             .map(|c| c.clone())
