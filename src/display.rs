@@ -163,7 +163,7 @@ pub fn grade_sheet(assignment: &Assignment, student: &str) {
         assignment.total_mark(student),
         assignment.out_of()
     );
-    for q in assignment.questions.iter() {
+    for q in assignment.get_questions().iter() {
         question(assignment, student, &q);
     }
     println!("================================================================\n\n");

@@ -51,7 +51,7 @@ impl App {
                 _ => break,
             }
 
-            self.question = self.assignment.questions[self.question_idx as usize].clone();
+            self.question = self.assignment.get_question_at(self.question_idx);
             self.asn_menu();
         }
     }
@@ -59,9 +59,9 @@ impl App {
     fn set_assignment(&mut self, assignment: Assignment) {
         self.assignment = assignment;
         self.student_idx = 0;
-        self.student = self.assignment.students[self.student_idx as usize].clone();
+        self.student = self.assignment.get_student_at(self.student_idx);
         self.question_idx = 0;
-        self.question = self.assignment.questions[self.question_idx as usize].clone();
+        self.question = self.assignment.get_question_at(self.question_idx);
     }
 
     fn save_assignment(&self) {
@@ -102,21 +102,21 @@ impl App {
 
     fn new_student(&mut self) {
         self.student = display::get_new_student_name(&self.assignment);
-        self.assignment.students.push(self.student.clone());
-        self.student_idx = (self.assignment.students.len() as u32) - 1;
+        self.assignment.add_student(&self.student);
+        self.student_idx = self.assignment.num_students() - 1;
         self.save_assignment();
     }
 
     fn change_student(&mut self, dx: i32) {
         if dx >= 0 {
-            let x = (self.student_idx + 1) % self.assignment.students.len() as u32;
+            let x = (self.student_idx + 1) % self.assignment.num_students();
             self.student_idx = x;
         } else if self.student_idx == 0 {
-            self.student_idx = (self.assignment.students.len() as u32) - 1;
+            self.student_idx = self.assignment.num_students() - 1;
         } else {
             self.student_idx -= 1;
         }
-        self.student = self.assignment.students[self.student_idx as usize].clone();
+        self.student = self.assignment.get_student_at(self.student_idx);
     }
 
     fn question_menu(&mut self) {
@@ -192,13 +192,13 @@ impl App {
 
     fn change_question(&mut self, dx: i32) {
         if dx >= 0 {
-            let x = (self.question_idx + 1) % self.assignment.questions.len() as u32;
+            let x = (self.question_idx + 1) % self.assignment.num_questions();
             self.question_idx = x;
         } else if self.question_idx == 0 {
-            self.question_idx = (self.assignment.questions.len() as u32) - 1;
+            self.question_idx = self.assignment.num_questions() - 1;
         } else {
             self.question_idx -= 1;
         }
-        self.question = self.assignment.questions[self.question_idx as usize].clone();
+        self.question = self.assignment.get_question_at(self.question_idx);
     }
 }

@@ -24,24 +24,27 @@ pub fn write_grade_sheet_to(assignment: &Assignment, student: &String, filename:
 
 pub fn assignment_to_latex(assignment: &Assignment, student: &String) -> String {
     let empty = "".to_string();
-    let questions = assignment.questions.iter().fold(String::new(), |acc, q| {
-        acc + "\n"
-            + &format!(
-                "\\section*{{{}.{} -- {}/{}}}\n",
-                q.num,
-                q.part,
-                assignment.question_mark(student, q),
-                q.out_of
-            )
-            + &match assignment
-                .question_comments(student, q)
-                .iter()
-                .fold(String::new(), |acc, c| acc + "\n" + &comment_to_latex(&c))
-            {
-                s if s == empty => "Well Done".to_string(),
-                s => "\\begin{description}".to_string() + &s + "\n" + "\\end{description}",
-            }
-    });
+    let questions = assignment
+        .get_questions()
+        .iter()
+        .fold(String::new(), |acc, q| {
+            acc + "\n"
+                + &format!(
+                    "\\section*{{{}.{} -- {}/{}}}\n",
+                    q.num,
+                    q.part,
+                    assignment.question_mark(student, &q),
+                    q.out_of
+                )
+                + &match assignment
+                    .question_comments(student, &q)
+                    .iter()
+                    .fold(String::new(), |acc, c| acc + "\n" + &comment_to_latex(&c))
+                {
+                    s if s == empty => "Well Done".to_string(),
+                    s => "\\begin{description}".to_string() + &s + "\n" + "\\end{description}",
+                }
+        });
 
     vec![
         "\\documentclass{article}".to_string(),
@@ -84,7 +87,7 @@ pub fn dump_all_grade_sheets(assignment: &Assignment) {
     }
 
     println!("==== Writing All Grade Sheets To Latex ====");
-    for s in assignment.students.iter() {
+    for s in assignment.get_students().iter() {
         let filename = dirname.clone()
             + "/"
             + &format!(

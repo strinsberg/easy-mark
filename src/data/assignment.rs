@@ -1,14 +1,12 @@
 use crate::data::{Comment, Question};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Assignment {
     pub title: String,
     pub course: String,
-    pub students: Vec<String>,
-    pub questions: Vec<Question>,
-    pub comments: HashMap<Question, Vec<Comment>>,
+    students: Vec<String>,
+    questions: Vec<QuestAndComs>,
     next_id: u64,
 }
 
@@ -19,21 +17,58 @@ impl Assignment {
             course,
             students: Vec::new(),
             questions: Vec::new(),
-            comments: HashMap::new(),
             next_id: 0,
         }
+    }
+
+    pub fn num_students(&self) -> u32 {
+        self.students.len() as u32
     }
 
     pub fn student_exists(&self, student: &str) -> bool {
         self.students.iter().any(|s| s == student)
     }
 
+    pub fn get_student_at(&self, idx: u32) -> String {
+        self.students[idx as usize].clone()
+    }
+
+    pub fn add_student(&mut self, student: &str) {
+        assert!(!self.student_exists(student));
+        self.students.push(student.to_string());
+    }
+
+    pub fn get_students(&self) -> Vec<String> {
+        self.students.iter().map(|s| s.clone()).collect()
+    }
+
+    pub fn num_questions(&self) -> u32 {
+        self.questions.len() as u32
+    }
+
+    pub fn question_exists(&self, question: &Question) -> bool {
+        self.questions.iter().any(|qc| &qc.question == question)
+    }
+
+    pub fn get_questions(&self) -> Vec<Question> {
+        self.questions
+            .iter()
+            .map(|qc| qc.question.clone())
+            .collect()
+    }
+
     pub fn new_question(&mut self, num: u32, part: u32, out_of: u32) {
         let q = Question { num, part, out_of };
-        assert!(!self.comments.contains_key(&q));
+        assert!(!self.question_exists(&q));
 
-        self.questions.push(q.clone());
-        self.comments.insert(q, Vec::new());
+        self.questions.push(QuestAndComs {
+            question: q,
+            comments: Vec::new(),
+        });
+    }
+
+    pub fn get_question_at(&self, idx: u32) -> Question {
+        self.questions[idx as usize].question.clone()
     }
 
     pub fn new_comment(
@@ -46,13 +81,20 @@ impl Assignment {
         let com = Comment::new(self.next_id, deduction, text, student.to_string());
         self.next_id += 1;
 
-        self.comments.get_mut(question).unwrap().push(com);
+        self.questions
+            .iter_mut()
+            .find(|qc| &qc.question == question)
+            .unwrap()
+            .comments
+            .push(com);
     }
 
     pub fn add_comment_to(&mut self, student: &str, question: &Question, id: u64) {
-        self.comments
-            .get_mut(question)
+        self.questions
+            .iter_mut()
+            .find(|qc| &qc.question == question)
             .unwrap()
+            .comments
             .iter_mut()
             .find(|c| c.id == id)
             .unwrap()
@@ -62,9 +104,11 @@ impl Assignment {
     pub fn remove_comment_from(&mut self, student: &str, question: &Question, id: u64) {
         let (id, empty) = {
             let com = self
-                .comments
-                .get_mut(question)
+                .questions
+                .iter_mut()
+                .find(|qc| &qc.question == question)
                 .unwrap()
+                .comments
                 .iter_mut()
                 .find(|c| c.id == id)
                 .unwrap();
@@ -73,18 +117,22 @@ impl Assignment {
             (com.id, com.empty())
         };
         if empty {
-            self.comments
-                .get_mut(question)
+            self.questions
+                .iter_mut()
+                .find(|qc| &qc.question == question)
                 .unwrap()
+                .comments
                 .retain(|c| c.id != id);
         }
     }
 
     pub fn edit_comment(&mut self, question: &Question, id: u64, deduction: f32, text: String) {
         let mut com = self
-            .comments
-            .get_mut(question)
+            .questions
+            .iter_mut()
+            .find(|qc| &qc.question == question)
             .unwrap()
+            .comments
             .iter_mut()
             .find(|c| c.id == id)
             .unwrap();
@@ -93,17 +141,30 @@ impl Assignment {
     }
 
     pub fn out_of(&self) -> u32 {
-        self.questions.iter().fold(0, |acc, q| acc + q.out_of)
+        self.questions
+            .iter()
+            .fold(0, |acc, qc| acc + qc.question.out_of)
     }
 
     pub fn question_comments(&self, student: &str, question: &Question) -> Vec<Comment> {
-        self.comments
-            .get(question)
+        self.questions
+            .iter()
+            .find(|qc| &qc.question == question)
             .unwrap()
+            .comments
             .iter()
             .filter(|c| c.has_student(student))
             .map(|c| c.clone())
             .collect()
+    }
+
+    pub fn get_comments_mut(&mut self, question: &Question) -> &mut Vec<Comment> {
+        &mut self
+            .questions
+            .iter_mut()
+            .find(|qc| &qc.question == question)
+            .unwrap()
+            .comments
     }
 
     pub fn question_mark(&self, student: &str, question: &Question) -> f32 {
@@ -122,9 +183,11 @@ impl Assignment {
     }
 
     pub fn question_comments_unused(&self, student: &str, question: &Question) -> Vec<Comment> {
-        self.comments
-            .get(question)
+        self.questions
+            .iter()
+            .find(|qc| &qc.question == question)
             .unwrap()
+            .comments
             .iter()
             .filter(|c| !c.has_student(student))
             .map(|c| c.clone())
@@ -132,8 +195,14 @@ impl Assignment {
     }
 
     pub fn total_mark(&self, student: &str) -> f32 {
-        self.questions
-            .iter()
-            .fold(0.0, |acc, q| acc + self.question_mark(student, q))
+        self.questions.iter().fold(0.0, |acc, qc| {
+            acc + self.question_mark(student, &qc.question)
+        })
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct QuestAndComs {
+    pub question: Question,
+    pub comments: Vec<Comment>,
 }
