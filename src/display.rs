@@ -1,5 +1,6 @@
 use crate::assignment::Assignment;
 use crate::comment::Question;
+use rustyline::Editor;
 use std::fs;
 use std::fs::File;
 use std::process::Command;
@@ -14,7 +15,7 @@ pub fn input(prompt: &str) -> String {
 
 pub fn readline_with_initial(prompt: &str, initial: (&str, &str)) -> String {
     loop {
-        let mut rl = rustyline::Editor::<()>::new();
+        let mut rl = Editor::<()>::new();
         let res: String = rl
             .readline_with_initial(prompt, initial)
             .unwrap()
@@ -47,7 +48,7 @@ pub fn get_f32(prompt: &str, error_msg: &str) -> f32 {
     }
 }
 
-pub fn get_menu_choice(header: &String, menu: &Vec<String>) -> u32 {
+pub fn get_menu_choice(header: &str, menu: &Vec<String>) -> u32 {
     let num = loop {
         println!("==== {} ====", header);
         for (i, item) in menu.iter().enumerate() {
@@ -79,7 +80,7 @@ pub fn create_new_assignment() -> Assignment {
     let num_q: u32 = loop {
         match get_u32("Number of Questions: ", "Input must be a positive number") {
             x if x > 0 => break x,
-            _ => println!("\n*** Please choose a number greater than 0 ***\n"),
+            _ => println!("\n*** Must have at least one question ***\n"),
         }
     };
 
@@ -95,7 +96,7 @@ pub fn create_new_assignment() -> Assignment {
                     if part_num > 1 {
                         break;
                     } else {
-                        println!("\n*** Each Question Must have at least 1 part ***\n");
+                        println!("\n*** Must have at least 1 part ***\n");
                     }
                 }
                 x => {
@@ -127,13 +128,13 @@ pub fn load_assignment() -> Option<Assignment> {
 
     if files.len() > 0 {
         files.push("Exit".to_string());
-        let header = "Load Assignment".to_string();
+        let header = "Load Assignment";
         let choice = (get_menu_choice(&header, &files) - 1) as usize;
 
         if choice >= files.len() - 1 {
             None
         } else {
-            let f = File::open(files[choice].to_string()).expect("Unable to create file");
+            let f = File::open(&files[choice]).expect("Unable to create file");
             let asn: Assignment = serde_pickle::de::from_reader(f).expect("could not pickle");
             Some(asn)
         }
@@ -143,7 +144,7 @@ pub fn load_assignment() -> Option<Assignment> {
     }
 }
 
-pub fn grade_sheet(assignment: &Assignment, student: &String) {
+pub fn grade_sheet(assignment: &Assignment, student: &str) {
     println!("================================================================");
     println!("{} - {}", assignment.course, assignment.title);
     println!("{}", student);
@@ -159,7 +160,7 @@ pub fn grade_sheet(assignment: &Assignment, student: &String) {
     println!("================================================================\n\n");
 }
 
-pub fn question(assignment: &Assignment, student: &String, question: &Question) {
+pub fn question(assignment: &Assignment, student: &str, question: &Question) {
     let comments = assignment.question_comments(student, question);
     let mark = assignment.question_mark(student, question);
 
@@ -181,8 +182,9 @@ pub fn new_comment() -> Option<(f32, String)> {
     let deduction: f32 = loop {
         match get_f32("Deduction: ", "Must be a whole or decimal number") {
             x if x < 0.0 => println!(
-            "*** Deductions must be 0 or greater. Will be applied as negative when calculating marks ***\n"
-        ),
+                "*** {}. {}. ***\n",
+                "Deductions must be 0 or greater", "They will be negative when calculating marks"
+            ),
             x => break x,
         }
     };
@@ -190,7 +192,7 @@ pub fn new_comment() -> Option<(f32, String)> {
     let satisfied: String = input("Satisfied? (y/n): ");
     clear_screen();
 
-    match satisfied.to_lowercase() == "y".to_string() {
+    match &satisfied.to_lowercase() == "y" {
         true => Some((deduction, text)),
         false => None,
     }
@@ -198,15 +200,15 @@ pub fn new_comment() -> Option<(f32, String)> {
 
 pub fn choose_existing_comment(
     assignment: &Assignment,
-    student: &String,
+    student: &str,
     question: &Question,
 ) -> Option<u64> {
-    let header = "Add Existing Comment".to_string();
+    let header = "Add Existing Comment";
     let comments = assignment.question_comments_unused(student, question);
 
     if comments.len() == 0 {
         clear_screen();
-        println!("*** No unused comments ***\n");
+        println!("*** No available comments ***\n");
         return None;
     }
 
@@ -228,15 +230,15 @@ pub fn choose_existing_comment(
 
 pub fn edit_comment(
     assignment: &Assignment,
-    student: &String,
+    student: &str,
     question: &Question,
 ) -> Option<(f32, String, u64)> {
-    let header = "Edit Comment".to_string();
+    let header = "Edit Comment";
     let comments = assignment.question_comments(student, question);
 
     if comments.len() == 0 {
         clear_screen();
-        println!("*** No comments added yet ***\n");
+        println!("*** No comments have been added ***\n");
         return None;
     }
 
@@ -252,22 +254,19 @@ pub fn edit_comment(
     if choice < comments.len() {
         println!("==== Edit Comment ====");
         let deduction: f32 = loop {
-            let mut rl = rustyline::Editor::<()>::new();
-            let num: String = rl
-                .readline_with_initial("Deduction: ", (&comments[choice].deduction.to_string(), ""))
-                .unwrap()
-                .trim()
-                .to_string();
+            let num: String =
+                readline_with_initial("Deduction: ", (&comments[choice].deduction.to_string(), ""));
             match num.parse::<f32>() {
                 Ok(x) => break x,
-                _ => println!("\n*** Enter 0 or higher for the deduction ***\n"),
+                _ => println!(
+                    "*** {}. {}. ***\n",
+                    "Deductions must be 0 or greater",
+                    "They will be negative when calculating marks"
+                ),
             }
         };
 
-        let mut rl = rustyline::Editor::<()>::new();
-        let text: String = rl
-            .readline_with_initial("Comment: ", (&comments[choice].text, ""))
-            .unwrap();
+        let text: String = readline_with_initial("Comment: ", (&comments[choice].text, ""));
         let satisfied: String = input("Satisfied? (y/n): ");
         clear_screen();
 
@@ -280,17 +279,13 @@ pub fn edit_comment(
     }
 }
 
-pub fn remove_comment(
-    assignment: &Assignment,
-    student: &String,
-    question: &Question,
-) -> Option<u64> {
+pub fn remove_comment(assignment: &Assignment, student: &str, question: &Question) -> Option<u64> {
     let header = "Remove Comment".to_string();
     let comments = assignment.question_comments(student, question);
 
     if comments.len() == 0 {
         clear_screen();
-        println!("*** No comments added yet ***\n");
+        println!("*** No comments have been added ***\n");
         return None;
     }
 

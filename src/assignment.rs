@@ -35,18 +35,18 @@ impl Assignment {
 
     pub fn new_comment(
         &mut self,
-        student: &String,
+        student: &str,
         question: &Question,
         deduction: f32,
         text: String,
     ) {
-        let com = Comment::new(self.next_id, deduction, text, student.clone());
+        let com = Comment::new(self.next_id, deduction, text, student.to_string());
         self.next_id += 1;
 
         self.comments.get_mut(question).unwrap().push(com);
     }
 
-    pub fn add_comment_to(&mut self, student: &String, question: &Question, id: u64) {
+    pub fn add_comment_to(&mut self, student: &str, question: &Question, id: u64) {
         self.comments
             .get_mut(question)
             .unwrap()
@@ -54,10 +54,10 @@ impl Assignment {
             .find(|c| c.id == id)
             .unwrap()
             .names
-            .insert(student.clone());
+            .insert(student.to_string());
     }
 
-    pub fn remove_comment_from(&mut self, student: &String, question: &Question, id: u64) {
+    pub fn remove_comment_from(&mut self, student: &str, question: &Question, id: u64) {
         self.comments
             .get_mut(question)
             .unwrap()
@@ -85,7 +85,7 @@ impl Assignment {
         self.questions.iter().fold(0, |acc, q| acc + q.out_of)
     }
 
-    pub fn question_comments(&self, student: &String, question: &Question) -> Vec<Comment> {
+    pub fn question_comments(&self, student: &str, question: &Question) -> Vec<Comment> {
         self.comments
             .get(question)
             .unwrap()
@@ -95,7 +95,7 @@ impl Assignment {
             .collect()
     }
 
-    pub fn question_mark(&self, student: &String, question: &Question) -> f32 {
+    pub fn question_mark(&self, student: &str, question: &Question) -> f32 {
         let total = question.out_of as f32;
         let deducted = self
             .question_comments(student, question)
@@ -110,7 +110,7 @@ impl Assignment {
         }
     }
 
-    pub fn question_comments_unused(&self, student: &String, question: &Question) -> Vec<Comment> {
+    pub fn question_comments_unused(&self, student: &str, question: &Question) -> Vec<Comment> {
         self.comments
             .get(question)
             .unwrap()
@@ -120,7 +120,7 @@ impl Assignment {
             .collect()
     }
 
-    pub fn total_mark(&self, student: &String) -> f32 {
+    pub fn total_mark(&self, student: &str) -> f32 {
         self.questions
             .iter()
             .fold(0.0, |acc, q| acc + self.question_mark(student, q))
