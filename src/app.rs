@@ -1,5 +1,4 @@
-use crate::assignment::Assignment;
-use crate::data::Question;
+use crate::data::{Assignment, Question};
 use crate::display;
 use crate::latex;
 use serde::{Deserialize, Serialize};

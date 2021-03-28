@@ -1,19 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
-pub struct Question {
-    pub num: u32,
-    pub part: u32,
-    pub out_of: u32,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Comment {
     pub id: u64,
     pub deduction: f32,
     pub text: String,
-    pub names: HashSet<String>,
+    names: HashSet<String>,
 }
 
 impl Comment {
@@ -26,5 +19,18 @@ impl Comment {
             text,
             names,
         }
+    }
+
+    pub fn has_student(&self, student: &str) -> bool {
+        self.names.contains(student)
+    }
+
+    pub fn add_student(&mut self, student: String) {
+        assert!(!self.has_student(&student));
+        self.names.insert(student);
+    }
+
+    pub fn remove_student(&mut self, student: &str) {
+        self.names.remove(student);
     }
 }

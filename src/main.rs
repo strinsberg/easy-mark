@@ -1,5 +1,4 @@
 mod app;
-mod assignment;
 mod data;
 mod display;
 mod latex;

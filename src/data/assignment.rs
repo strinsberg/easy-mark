@@ -56,8 +56,7 @@ impl Assignment {
             .iter_mut()
             .find(|c| c.id == id)
             .unwrap()
-            .names
-            .insert(student.to_string());
+            .add_student(student.to_string());
     }
 
     pub fn remove_comment_from(&mut self, student: &str, question: &Question, id: u64) {
@@ -67,8 +66,7 @@ impl Assignment {
             .iter_mut()
             .find(|c| c.id == id)
             .unwrap()
-            .names
-            .remove(student);
+            .remove_student(student);
         // if the comment has 0 names now, remove... names.retain(|c| c != com); ???
     }
 
@@ -93,7 +91,7 @@ impl Assignment {
             .get(question)
             .unwrap()
             .iter()
-            .filter(|c| c.names.contains(student))
+            .filter(|c| c.has_student(student))
             .map(|c| c.clone())
             .collect()
     }
@@ -118,7 +116,7 @@ impl Assignment {
             .get(question)
             .unwrap()
             .iter()
-            .filter(|c| !c.names.contains(student))
+            .filter(|c| !c.has_student(student))
             .map(|c| c.clone())
             .collect()
     }

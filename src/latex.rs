@@ -1,5 +1,4 @@
-use crate::assignment::Assignment;
-use crate::data::Comment;
+use crate::data::{Assignment, Comment};
 use std::fs;
 use std::fs::File;
 use std::io::Write;
