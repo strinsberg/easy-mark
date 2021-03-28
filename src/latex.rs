@@ -68,7 +68,9 @@ pub fn assignment_to_latex(assignment: &Assignment, student: &String) -> String 
 
 pub fn dump_all_grade_sheets(assignment: &Assignment) {
     let dirname = format!("./{}_{}_latex", assignment.course, assignment.title).replace(" ", "_");
-    fs::create_dir(dirname.clone()).expect("Error creating directory for latex files");
+    if !fs::metadata(&dirname).is_ok() {
+        fs::create_dir(&dirname).expect("Error creating directory for latex files");
+    }
 
     println!("==== Writing All Grade Sheets To Latex ====");
     for s in assignment.students.iter() {
