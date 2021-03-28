@@ -49,13 +49,13 @@ pub fn get_f32(prompt: &str, error_msg: &str) -> f32 {
 }
 
 pub fn get_menu_choice(header: &str, menu: &Vec<String>) -> u32 {
-    let num = loop {
-        println!("==== {} ====", header);
-        for (i, item) in menu.iter().enumerate() {
-            println!("{}. {}", i + 1, item);
-        }
+    println!("==== {} ====", header);
+    for (i, item) in menu.iter().enumerate() {
+        println!("{}. {}", i + 1, item);
+    }
 
-        match get_u32("Choice: ", "Input must be a number") {
+    let num = loop {
+        match get_u32("Choice: ", "Input must be a positive number") {
             x if x != 0 && x <= menu.len() as u32 => break x,
             _ => println!("\n*** Choice must be from the menu ***\n"),
         }
@@ -64,11 +64,19 @@ pub fn get_menu_choice(header: &str, menu: &Vec<String>) -> u32 {
     num
 }
 
-pub fn get_new_student_name() -> String {
+pub fn get_new_student_name(assignment: &Assignment) -> String {
     print!("==== New Student ====\n");
-    let name = input("Student Name: ");
-    clear_screen();
-    name
+    loop {
+        match input("Student Name: ") {
+            name if assignment.student_exists(&name) => {
+                println!("\n*** A Student with that name has already been added ***\n")
+            }
+            name => {
+                clear_screen();
+                break name;
+            }
+        }
+    }
 }
 
 pub fn create_new_assignment() -> Assignment {
@@ -78,7 +86,10 @@ pub fn create_new_assignment() -> Assignment {
     let mut asn = Assignment::new(name, course);
 
     let num_q: u32 = loop {
-        match get_u32("Number of Questions: ", "Input must be a positive number") {
+        match get_u32(
+            "Number of Questions: ",
+            "Input must be a positive whole number",
+        ) {
             x if x > 0 => break x,
             _ => println!("\n*** Must have at least one question ***\n"),
         }
@@ -154,7 +165,6 @@ pub fn grade_sheet(assignment: &Assignment, student: &str) {
         assignment.out_of()
     );
     for q in assignment.questions.iter() {
-        println!("----------------------------------------------------------------");
         question(assignment, student, &q);
     }
     println!("================================================================\n\n");
@@ -164,6 +174,7 @@ pub fn question(assignment: &Assignment, student: &str, question: &Question) {
     let comments = assignment.question_comments(student, question);
     let mark = assignment.question_mark(student, question);
 
+    println!("--------------------------------------");
     println!("Question {}.{}", question.num, question.part);
     println!("Grade {}/{}\n", mark, question.out_of);
 
@@ -182,7 +193,7 @@ pub fn new_comment() -> Option<(f32, String)> {
     let deduction: f32 = loop {
         match get_f32("Deduction: ", "Must be a whole or decimal number") {
             x if x < 0.0 => println!(
-                "*** {}. {}. ***\n",
+                "\n*** {}. {}. ***\n",
                 "Deductions must be 0 or greater", "They will be negative when calculating marks"
             ),
             x => break x,
@@ -233,7 +244,7 @@ pub fn edit_comment(
     student: &str,
     question: &Question,
 ) -> Option<(f32, String, u64)> {
-    let header = "Edit Comment";
+    let header = "Edit Comment *** For ALL Users ***";
     let comments = assignment.question_comments(student, question);
 
     if comments.len() == 0 {
@@ -259,7 +270,7 @@ pub fn edit_comment(
             match num.parse::<f32>() {
                 Ok(x) => break x,
                 _ => println!(
-                    "*** {}. {}. ***\n",
+                    "\n*** {}. {}. ***\n",
                     "Deductions must be 0 or greater",
                     "They will be negative when calculating marks"
                 ),

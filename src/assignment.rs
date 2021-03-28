@@ -25,6 +25,10 @@ impl Assignment {
         }
     }
 
+    pub fn student_exists(&self, student: &str) -> bool {
+        self.students.iter().any(|s| s == student)
+    }
+
     pub fn new_question(&mut self, num: u32, part: u32, out_of: u32) {
         let q = Question { num, part, out_of };
         assert!(!self.comments.contains_key(&q));

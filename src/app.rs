@@ -102,7 +102,7 @@ impl App {
     }
 
     fn new_student(&mut self) {
-        self.student = display::get_new_student_name();
+        self.student = display::get_new_student_name(&self.assignment);
         self.assignment.students.push(self.student.clone());
         self.student_idx = (self.assignment.students.len() as u32) - 1;
         self.save_assignment();
