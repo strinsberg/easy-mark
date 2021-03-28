@@ -33,4 +33,8 @@ impl Comment {
     pub fn remove_student(&mut self, student: &str) {
         self.names.remove(student);
     }
+
+    pub fn empty(&self) -> bool {
+        self.names.len() == 0
+    }
 }

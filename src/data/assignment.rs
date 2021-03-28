@@ -60,14 +60,24 @@ impl Assignment {
     }
 
     pub fn remove_comment_from(&mut self, student: &str, question: &Question, id: u64) {
-        self.comments
-            .get_mut(question)
-            .unwrap()
-            .iter_mut()
-            .find(|c| c.id == id)
-            .unwrap()
-            .remove_student(student);
-        // if the comment has 0 names now, remove... names.retain(|c| c != com); ???
+        let (id, empty) = {
+            let com = self
+                .comments
+                .get_mut(question)
+                .unwrap()
+                .iter_mut()
+                .find(|c| c.id == id)
+                .unwrap();
+
+            com.remove_student(student);
+            (com.id, com.empty())
+        };
+        if empty {
+            self.comments
+                .get_mut(question)
+                .unwrap()
+                .retain(|c| c.id != id);
+        }
     }
 
     pub fn edit_comment(&mut self, question: &Question, id: u64, deduction: f32, text: String) {
