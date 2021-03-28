@@ -71,6 +71,24 @@ impl Assignment {
         self.questions[idx as usize].question.clone()
     }
 
+    fn get_comments_mut(&mut self, question: &Question) -> &mut Vec<Comment> {
+        &mut self
+            .questions
+            .iter_mut()
+            .find(|qc| &qc.question == question)
+            .unwrap()
+            .comments
+    }
+
+    fn get_comments(&self, question: &Question) -> &Vec<Comment> {
+        &self
+            .questions
+            .iter()
+            .find(|qc| &qc.question == question)
+            .unwrap()
+            .comments
+    }
+
     pub fn new_comment(
         &mut self,
         student: &str,
@@ -84,7 +102,7 @@ impl Assignment {
         self.get_comments_mut(question).push(com);
     }
 
-    pub fn add_comment_to(&mut self, student: &str, question: &Question, id: u64) {
+    pub fn add_to_comment(&mut self, student: &str, question: &Question, id: u64) {
         self.get_comments_mut(question)
             .iter_mut()
             .find(|c| c.id == id)
@@ -92,7 +110,7 @@ impl Assignment {
             .add_student(student.to_string());
     }
 
-    pub fn remove_comment_from(&mut self, student: &str, question: &Question, id: u64) {
+    pub fn remove_from_comment(&mut self, student: &str, question: &Question, id: u64) {
         let (id, empty) = {
             let com = self
                 .get_comments_mut(question)
@@ -124,36 +142,16 @@ impl Assignment {
             .fold(0, |acc, qc| acc + qc.question.out_of)
     }
 
-    pub fn question_comments(&self, student: &str, question: &Question) -> Vec<Comment> {
-        self.get_comments(question)
-            .iter()
-            .filter(|c| c.has_student(student))
-            .map(|c| c.clone())
-            .collect()
+    pub fn students_total(&self, student: &str) -> f32 {
+        self.questions.iter().fold(0.0, |acc, qc| {
+            acc + self.students_mark_for(student, &qc.question)
+        })
     }
 
-    fn get_comments_mut(&mut self, question: &Question) -> &mut Vec<Comment> {
-        &mut self
-            .questions
-            .iter_mut()
-            .find(|qc| &qc.question == question)
-            .unwrap()
-            .comments
-    }
-
-    fn get_comments(&self, question: &Question) -> &Vec<Comment> {
-        &self
-            .questions
-            .iter()
-            .find(|qc| &qc.question == question)
-            .unwrap()
-            .comments
-    }
-
-    pub fn question_mark(&self, student: &str, question: &Question) -> f32 {
+    pub fn students_mark_for(&self, student: &str, question: &Question) -> f32 {
         let total = question.out_of as f32;
         let deducted = self
-            .question_comments(student, question)
+            .students_comments_for(student, question)
             .iter()
             .fold(0.0, |acc, c| acc + c.deduction);
 
@@ -165,18 +163,20 @@ impl Assignment {
         }
     }
 
-    pub fn question_comments_unused(&self, student: &str, question: &Question) -> Vec<Comment> {
+    pub fn students_comments_for(&self, student: &str, question: &Question) -> Vec<Comment> {
+        self.get_comments(question)
+            .iter()
+            .filter(|c| c.has_student(student))
+            .map(|c| c.clone())
+            .collect()
+    }
+
+    pub fn unused_comments_for(&self, student: &str, question: &Question) -> Vec<Comment> {
         self.get_comments(question)
             .iter()
             .filter(|c| !c.has_student(student))
             .map(|c| c.clone())
             .collect()
-    }
-
-    pub fn total_mark(&self, student: &str) -> f32 {
-        self.questions.iter().fold(0.0, |acc, qc| {
-            acc + self.question_mark(student, &qc.question)
-        })
     }
 }
 

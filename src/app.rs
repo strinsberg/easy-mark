@@ -161,7 +161,7 @@ impl App {
         match display::choose_existing_comment(&self.assignment, &self.student, &self.question) {
             Some(id) => {
                 self.assignment
-                    .add_comment_to(&self.student, &self.question, id);
+                    .add_to_comment(&self.student, &self.question, id);
                 self.save_assignment();
             }
             _ => (),
@@ -183,7 +183,7 @@ impl App {
         match display::remove_comment(&self.assignment, &self.student, &self.question) {
             Some(id) => {
                 self.assignment
-                    .remove_comment_from(&self.student, &self.question, id);
+                    .remove_from_comment(&self.student, &self.question, id);
                 self.save_assignment();
             }
             _ => (),

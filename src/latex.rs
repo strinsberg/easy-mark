@@ -9,7 +9,10 @@ pub fn dump_grade_sheet(assignment: &Assignment, student: &String) {
     let filename = format!(
         "{}_{}.tex",
         student.replace(" ", "_"),
-        assignment.total_mark(student).to_string().replace(".", "_")
+        assignment
+            .students_total(student)
+            .to_string()
+            .replace(".", "_")
     );
     write_grade_sheet_to(assignment, student, &filename);
     println!("*** Successfully Wrote Grade Sheet To Latex ***\n");
@@ -33,11 +36,11 @@ pub fn assignment_to_latex(assignment: &Assignment, student: &String) -> String 
                     "\\section*{{{}.{} -- {}/{}}}\n",
                     q.num,
                     q.part,
-                    assignment.question_mark(student, &q),
+                    assignment.students_mark_for(student, &q),
                     q.out_of
                 )
                 + &match assignment
-                    .question_comments(student, &q)
+                    .students_comments_for(student, &q)
                     .iter()
                     .fold(String::new(), |acc, c| acc + "\n" + &comment_to_latex(&c))
                 {
@@ -57,7 +60,7 @@ pub fn assignment_to_latex(assignment: &Assignment, student: &String) -> String 
         format!(
             "\\author{{{} \\\\ \\textbf{{Score: {}/{}}} }}",
             student,
-            assignment.total_mark(student),
+            assignment.students_total(student),
             assignment.out_of()
         ),
         "\\date{\\today}".to_string(),
@@ -93,7 +96,7 @@ pub fn dump_all_grade_sheets(assignment: &Assignment) {
             + &format!(
                 "{}_{}.tex",
                 s.replace(" ", "_"),
-                assignment.total_mark(&s).to_string().replace(".", "_")
+                assignment.students_total(&s).to_string().replace(".", "_")
             );
         write_grade_sheet_to(assignment, &s, &filename);
         println!("{}", s);

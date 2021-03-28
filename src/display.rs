@@ -160,7 +160,7 @@ pub fn grade_sheet(assignment: &Assignment, student: &str) {
     println!("{}", student);
     println!(
         "Total: {}/{}\n",
-        assignment.total_mark(student),
+        assignment.students_total(student),
         assignment.out_of()
     );
     for q in assignment.get_questions().iter() {
@@ -170,8 +170,8 @@ pub fn grade_sheet(assignment: &Assignment, student: &str) {
 }
 
 pub fn question(assignment: &Assignment, student: &str, question: &Question) {
-    let comments = assignment.question_comments(student, question);
-    let mark = assignment.question_mark(student, question);
+    let comments = assignment.students_comments_for(student, question);
+    let mark = assignment.students_mark_for(student, question);
 
     println!("--------------------------------------");
     println!("Question {}.{}", question.num, question.part);
@@ -214,7 +214,7 @@ pub fn choose_existing_comment(
     question: &Question,
 ) -> Option<u64> {
     let header = "Add Existing Comment";
-    let comments = assignment.question_comments_unused(student, question);
+    let comments = assignment.unused_comments_for(student, question);
 
     if comments.len() == 0 {
         clear_screen();
@@ -244,7 +244,7 @@ pub fn edit_comment(
     question: &Question,
 ) -> Option<(f32, String, u64)> {
     let header = "Edit Comment *** For ALL Users ***";
-    let comments = assignment.question_comments(student, question);
+    let comments = assignment.students_comments_for(student, question);
 
     if comments.len() == 0 {
         clear_screen();
@@ -291,7 +291,7 @@ pub fn edit_comment(
 
 pub fn remove_comment(assignment: &Assignment, student: &str, question: &Question) -> Option<u64> {
     let header = "Remove Comment".to_string();
-    let comments = assignment.question_comments(student, question);
+    let comments = assignment.students_comments_for(student, question);
 
     if comments.len() == 0 {
         clear_screen();
