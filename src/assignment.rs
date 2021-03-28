@@ -1,5 +1,4 @@
-use crate::comment::Comment;
-use crate::comment::Question;
+use crate::data::{Comment, Question};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

@@ -1,4 +1,5 @@
 use crate::assignment::Assignment;
+use crate::data::Comment;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
@@ -36,7 +37,7 @@ pub fn assignment_to_latex(assignment: &Assignment, student: &String) -> String 
             + &match assignment
                 .question_comments(student, q)
                 .iter()
-                .fold(String::new(), |acc, c| acc + "\n" + &c.to_latex())
+                .fold(String::new(), |acc, c| acc + "\n" + &comment_to_latex(&c))
             {
                 s if s == empty => "Well Done".to_string(),
                 s => "\\begin{description}".to_string() + &s + "\n" + "\\end{description}",
@@ -64,6 +65,17 @@ pub fn assignment_to_latex(assignment: &Assignment, student: &String) -> String 
         "\\end{document}".to_string(),
     ]
     .join("\n")
+}
+
+pub fn comment_to_latex(comment: &Comment) -> String {
+    if comment.deduction > 0.0 {
+        format!(
+            "\\item[\\color{{red}}-{}] {}",
+            comment.deduction, comment.text
+        )
+    } else {
+        format!("\\item[Note] {}", comment.text)
+    }
 }
 
 pub fn dump_all_grade_sheets(assignment: &Assignment) {

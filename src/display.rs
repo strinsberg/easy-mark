@@ -1,5 +1,5 @@
 use crate::assignment::Assignment;
-use crate::comment::Question;
+use crate::data::Question;
 use rustyline::Editor;
 use std::fs;
 use std::fs::File;
