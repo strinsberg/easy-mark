@@ -104,7 +104,6 @@ pub fn load_assignment() -> Option<Assignment> {
         let choice = (get_menu_choice(&header, &files) - 1) as usize;
 
         if choice >= files.len() - 1 {
-            println!("*** Exit ***");
             None
         } else {
             let f = File::open(files[choice].to_string()).expect("Unable to create file");
@@ -112,7 +111,7 @@ pub fn load_assignment() -> Option<Assignment> {
             Some(asn)
         }
     } else {
-        println!("*** No easy-mark files ***");
+        println!("*** No easy-mark files ***\n");
         None
     }
 }
@@ -224,13 +223,30 @@ pub fn edit_comment(
     clear_screen();
 
     if choice < comments.len() {
-        println!("==== Existing Comment ====");
-        println!("Deduction: {}", comments[choice].deduction);
-        println!("Text: {}\n", comments[choice].text);
+        println!("==== Edit Comment ====");
+        let deduction: f32 = loop {
+            let mut rl = rustyline::Editor::<()>::new();
+            let num: String = rl
+                .readline_with_initial("Deduction: ", (&comments[choice].deduction.to_string(), ""))
+                .unwrap()
+                .trim()
+                .to_string();
+            match num.parse::<f32>() {
+                Ok(x) => break x,
+                _ => println!("\n*** Enter 0 or higher for the deduction ***\n"),
+            }
+        };
 
-        match new_comment() {
-            Some((deduct, text)) => Some((deduct, text, comments[choice].id)),
-            _ => None,
+        let mut rl = rustyline::Editor::<()>::new();
+        let text: String = rl
+            .readline_with_initial("Comment: ", (&comments[choice].text, ""))
+            .unwrap();
+        let satisfied: String = non_empty_input("Satisfied? (y/n): ".to_string());
+        clear_screen();
+
+        match satisfied.to_lowercase() == "y".to_string() {
+            true => Some((deduction, text, comments[choice].id)),
+            false => None,
         }
     } else {
         None

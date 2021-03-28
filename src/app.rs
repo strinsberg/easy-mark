@@ -37,8 +37,8 @@ impl App {
             "Quit".to_string(),
         ];
 
+        display::clear_screen();
         loop {
-            display::clear_screen();
             let choice = display::get_menu_choice(&header, &menu);
             match choice {
                 1 => {
