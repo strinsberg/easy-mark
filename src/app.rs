@@ -1,23 +1,22 @@
 use crate::data::{Assignment, Question};
-use crate::io::View;
-use crate::latex;
+use crate::io::{FileOps, View};
 use serde::{Deserialize, Serialize};
-use std::fs::File;
 use std::marker::PhantomData;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct App<V: View> {
+pub struct App<V: View, F: FileOps> {
     assignment: Assignment,
     student: String,
     student_idx: u32,
     question: Question,
     question_idx: u32,
     view: PhantomData<V>,
+    file_ops: PhantomData<F>,
 }
 
-impl<V: View> App<V> {
-    pub fn new() -> App<V> {
-        App::<V> {
+impl<V: View, F: FileOps> App<V, F> {
+    pub fn new() -> Self {
+        Self {
             assignment: Assignment::new("default".to_string(), "none".to_string()),
             student: "none".to_string(),
             student_idx: 0,
@@ -28,6 +27,7 @@ impl<V: View> App<V> {
             },
             question_idx: 0,
             view: PhantomData,
+            file_ops: PhantomData,
         }
     }
 
@@ -68,13 +68,6 @@ impl<V: View> App<V> {
         self.question = self.assignment.get_question_at(self.question_idx);
     }
 
-    fn save_assignment(&self) {
-        let filename =
-            format!("{}_{}.emark", self.assignment.course, self.assignment.title).replace(" ", "_");
-        let mut f = File::create(filename).expect("Unable to create file");
-        serde_pickle::ser::to_writer(&mut f, &self.assignment, true).expect("could not pickle");
-    }
-
     // Assignment menu ///////////////////////////////////////////////////////
     fn asn_menu(&mut self) {
         let menu = vec![
@@ -98,8 +91,8 @@ impl<V: View> App<V> {
                 3 => self.change_student(1),
                 4 => self.change_student(-1),
                 5 => V::show_grade_sheet(&self.assignment, &self.student),
-                6 => latex::dump_grade_sheet(&self.assignment, &self.student),
-                7 => latex::dump_all_grade_sheets(&self.assignment),
+                6 => F::save_latex_grade_sheet(&self.assignment, &self.student),
+                7 => F::save_all_latex_grade_sheets(&self.assignment),
                 _ => break,
             }
         }
@@ -109,7 +102,7 @@ impl<V: View> App<V> {
         self.student = V::new_student(&self.assignment);
         self.assignment.add_student(&self.student);
         self.student_idx = self.assignment.num_students() - 1;
-        self.save_assignment();
+        F::save_assignment(&self.assignment);
     }
 
     fn change_student(&mut self, dx: i32) {
@@ -157,7 +150,7 @@ impl<V: View> App<V> {
             Some((deduct, text)) => {
                 self.assignment
                     .new_comment(&self.student, &self.question, deduct, text);
-                self.save_assignment();
+                F::save_assignment(&self.assignment);
             }
             _ => (),
         }
@@ -168,7 +161,7 @@ impl<V: View> App<V> {
             Some(id) => {
                 self.assignment
                     .add_to_comment(&self.student, &self.question, id);
-                self.save_assignment();
+                F::save_assignment(&self.assignment);
             }
             _ => (),
         }
@@ -179,7 +172,7 @@ impl<V: View> App<V> {
             Some((deduct, text, id)) => {
                 self.assignment
                     .edit_comment(&self.question, id, deduct, text);
-                self.save_assignment();
+                F::save_assignment(&self.assignment);
             }
             _ => (),
         };
@@ -190,7 +183,7 @@ impl<V: View> App<V> {
             Some(id) => {
                 self.assignment
                     .remove_from_comment(&self.student, &self.question, id);
-                self.save_assignment();
+                F::save_assignment(&self.assignment);
             }
             _ => (),
         }

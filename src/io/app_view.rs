@@ -1,8 +1,6 @@
 use crate::data::{Assignment, Question};
-use crate::io::input;
-use crate::io::View;
+use crate::io::{input, AppFileOps, FileOps, View};
 use std::fs;
-use std::fs::File;
 use std::process::Command;
 
 #[cfg(target_os = "linux")]
@@ -113,8 +111,7 @@ impl View for AppView {
             if choice >= files.len() - 1 {
                 None
             } else {
-                let f = File::open(&files[choice]).expect("Unable to create file");
-                let asn: Assignment = serde_pickle::de::from_reader(f).expect("could not pickle");
+                let asn = AppFileOps::load_assignment(&files[choice]);
                 Some(asn)
             }
         } else {
