@@ -58,28 +58,25 @@ impl Comment {
 mod test {
     use super::*;
 
-    #[test]
-    fn it_knows_which_students_it_has() {
-        let comment = Comment::new(
+    fn make_test_comment() -> Comment {
+        Comment::new(
             0,
             3.0,
             "Not an answer.".to_string(),
             "Albert Einstein".to_string(),
-        );
+        )
+    }
 
+    #[test]
+    fn it_knows_which_students_it_has() {
+        let comment = make_test_comment();
         assert!(comment.has_student("Albert Einstein"));
         assert!(!comment.has_student("Issac Newton"));
     }
 
     #[test]
     fn it_adds_a_student() {
-        let mut comment = Comment::new(
-            0,
-            3.0,
-            "Not an answer.".to_string(),
-            "Albert Einstein".to_string(),
-        );
-
+        let mut comment = make_test_comment();
         comment.add_student("Issac Newton".to_string());
         assert!(comment.has_student("Issac Newton"));
     }
@@ -87,38 +84,20 @@ mod test {
     #[test]
     #[should_panic]
     fn it_panics_if_a_student_has_already_been_added() {
-        let mut comment = Comment::new(
-            0,
-            3.0,
-            "Not an answer.".to_string(),
-            "Albert Einstein".to_string(),
-        );
-
+        let mut comment = make_test_comment();
         comment.add_student("Albert Einstein".to_string());
     }
 
     #[test]
     fn it_removes_a_student() {
-        let mut comment = Comment::new(
-            0,
-            3.0,
-            "Not an answer.".to_string(),
-            "Albert Einstein".to_string(),
-        );
-
+        let mut comment = make_test_comment();
         comment.remove_student("Albert Einstein");
         assert!(!comment.has_student("Albert Einstein"));
     }
 
     #[test]
     fn it_knows_when_it_is_empty() {
-        let mut comment = Comment::new(
-            0,
-            3.0,
-            "Not an answer.".to_string(),
-            "Albert Einstein".to_string(),
-        );
-
+        let mut comment = make_test_comment();
         assert!(!comment.empty());
         comment.remove_student("Albert Einstein");
         assert!(comment.empty());
