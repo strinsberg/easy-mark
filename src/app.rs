@@ -149,7 +149,7 @@ impl<V: View, F: FileOps> App<V, F> {
         match V::new_comment() {
             Some((deduct, text)) => {
                 self.assignment
-                    .new_comment(&self.student, &self.question, deduct, text);
+                    .add_comment(&self.student, &self.question, deduct, text);
                 F::save_assignment(&self.assignment);
             }
             _ => (),

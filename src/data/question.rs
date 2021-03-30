@@ -10,3 +10,9 @@ pub struct Question {
     /// The number of marks the question is out of.
     pub out_of: u32,
 }
+
+impl Question {
+    pub fn new(num: u32, part: u32, out_of: u32) -> Self {
+        Self { num, part, out_of }
+    }
+}

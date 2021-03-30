@@ -78,7 +78,7 @@ impl View for AppView {
                         }
                     }
                     x => {
-                        asn.new_question(i, part_num, x);
+                        asn.add_question(i, part_num, x);
                         part_num += 1;
                     }
                 }
