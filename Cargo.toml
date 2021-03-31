@@ -10,3 +10,6 @@ edition = "2018"
 serde = { version = "1.0", features = ["derive"] }
 serde-pickle = "0.6"
 rustyline = "8.0.0"
+
+[dev-dependencies]
+mockall = "0.9.1"

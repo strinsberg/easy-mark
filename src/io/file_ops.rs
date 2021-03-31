@@ -1,5 +1,9 @@
 use crate::data::Assignment;
 
+#[cfg(test)]
+use mockall::automock;
+
+#[cfg_attr(test, automock)]
 pub trait FileOps {
     fn load_assignment(filename: &str) -> Assignment;
     fn save_assignment(assignment: &Assignment);

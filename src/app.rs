@@ -201,3 +201,76 @@ impl<V: View, F: FileOps> App<V, F> {
         self.question = self.assignment.get_question_at(self.question_idx);
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::io::MockFileOps;
+    use crate::io::MockView;
+    use mockall::Sequence;
+
+    fn make_test_asn() -> Assignment {
+        let q1 = Question::new(1, 1, 5);
+        let q2 = Question::new(1, 2, 5);
+        let q3 = Question::new(2, 1, 10);
+
+        let mut asn = Assignment::new("Assignment 5".to_string(), "CS 1000".to_string());
+        asn.add_question(q1.num, q1.part, q1.out_of);
+        asn.add_question(q2.num, q2.part, q2.out_of);
+        asn.add_question(q3.num, q3.part, q3.out_of);
+
+        asn.add_student("Issac Newton");
+        asn.add_student("Albert Einstein");
+        asn.add_student("Marie Currie");
+
+        asn.add_comment("Albert Einstein", &q1, 3.0, "Amateurish work".to_string());
+        asn.add_comment("Albert Einstein", &q2, 5.0, "Not correct".to_string());
+        asn.add_comment("Marie Currie", &q1, 1.0, "On the right track".to_string());
+
+        asn.add_comment("Issac Newton", &q2, 1.5, "Amateurish work".to_string());
+        asn.add_comment("Issac Newton", &q2, 2.0, "Try harder".to_string());
+        asn.add_comment("Issac Newton", &q3, 3.0, "Mind the apples".to_string());
+
+        asn
+    }
+
+    #[test]
+    fn it_sets_a_new_assignment() {
+        let mut app = App::<MockView, MockFileOps>::new();
+        let asn = make_test_asn();
+        app.set_assignment(asn);
+
+        assert_eq!(app.assignment.title, "Assignment 5".to_string());
+        assert_eq!(app.assignment.course, "CS 1000".to_string());
+        assert_eq!(app.student_idx, 0);
+        assert_eq!(app.question_idx, 0);
+        assert_eq!(app.assignment.get_student_at(0), "Issac Newton");
+        assert_eq!(app.assignment.get_question_at(0), Question::new(1, 1, 5));
+    }
+
+    #[test]
+    fn the_assignment_menu_displays_grade_sheet_for_5() {
+        let mut seq = Sequence::new();
+        let ctx_sm = MockView::show_menu_context();
+        let ctx_sgs = MockView::show_grade_sheet_context();
+
+        ctx_sm
+            .expect()
+            .times(1)
+            .in_sequence(&mut seq)
+            .return_const(5u32);
+        ctx_sgs
+            .expect()
+            .times(1)
+            .in_sequence(&mut seq)
+            .return_const(());
+        ctx_sm
+            .expect()
+            .times(1)
+            .in_sequence(&mut seq)
+            .return_const(8u32);
+
+        let mut app = App::<MockView, MockFileOps>::new();
+        app.asn_menu();
+    }
+}

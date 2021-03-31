@@ -1,5 +1,9 @@
 use crate::data::{Assignment, Question};
 
+#[cfg(test)]
+use mockall::automock;
+
+#[cfg_attr(test, automock)]
 pub trait View {
     fn clear_screen();
     fn show_menu(header: &str, menu: &Vec<String>) -> u32;

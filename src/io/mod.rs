@@ -7,3 +7,8 @@ mod app_view;
 mod file_ops;
 pub mod input;
 mod view;
+
+#[cfg(test)]
+pub use self::file_ops::MockFileOps;
+#[cfg(test)]
+pub use self::view::MockView;
