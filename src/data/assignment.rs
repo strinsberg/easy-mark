@@ -421,4 +421,35 @@ mod test {
         let coms_unused = asn.unused_comments_for("Issac Newton", &q);
         assert_eq!(coms_unused.len(), 2);
     }
+
+    #[test]
+    fn it_can_calculate_what_the_assignment_is_out_of() {
+        let asn = asn_with_students_and_questions();
+        assert_eq!(asn.out_of(), 20);
+    }
+
+    #[test]
+    fn it_can_calculate_a_students_marks() {
+        let q1_1 = Question::new(1, 1, 5);
+        let q1_2 = Question::new(1, 2, 5);
+        let q2_1 = Question::new(2, 1, 10);
+
+        let mut asn = asn_with_students_and_questions();
+        asn.add_comment("Issac Newton", &q1_2, 1.5, "Amateurish work".to_string());
+        asn.add_comment("Issac Newton", &q1_2, 2.0, "Try harder".to_string());
+        asn.add_comment("Issac Newton", &q2_1, 3.0, "Mind the apples".to_string());
+
+        assert_eq!(asn.students_mark_for("Issac Newton", &q1_1), 5.0);
+        assert_eq!(asn.students_mark_for("Issac Newton", &q1_2), 1.5);
+        assert_eq!(asn.students_mark_for("Issac Newton", &q2_1), 7.0);
+        assert_eq!(asn.students_total("Issac Newton"), 13.5);
+    }
+
+    #[test]
+    fn it_wont_give_less_than_zero_for_a_question() {
+        let q1_1 = Question::new(1, 1, 5);
+        let mut asn = asn_with_students_and_questions();
+        asn.add_comment("Issac Newton", &q1_1, 15.5, "Amateurish work".to_string());
+        assert_eq!(asn.students_mark_for("Issac Newton", &q1_1), 0.0);
+    }
 }
