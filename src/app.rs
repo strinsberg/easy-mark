@@ -250,6 +250,11 @@ mod test {
 
     #[test]
     fn the_assignment_menu_displays_grade_sheet_for_5() {
+        // Remove this test and just test the other functions. The menus are
+        // too suceptible to changes and doing the loops is a pain in tests.
+        // the logic for the tasks is more important for the running of the app.
+        // Perhaps this logic can be used to test the io stuff, where we just
+        // test for the actions and ignore all the output, and maybe input.
         let mut seq = Sequence::new();
         let ctx_sm = MockView::show_menu_context();
         let ctx_sgs = MockView::show_grade_sheet_context();

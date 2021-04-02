@@ -1,4 +1,5 @@
 use crate::data::{Assignment, Comment};
+use itertools::Itertools;
 
 pub fn convert_assignment(assignment: &Assignment, student: &String) -> String {
     vec![
@@ -40,6 +41,7 @@ fn convert_questions(assignment: &Assignment, student: &String) -> String {
                 + &match assignment
                     .students_comments_for(student, &q)
                     .iter()
+                    .sorted_by(|a, b| b.deduction.partial_cmp(&a.deduction).unwrap())
                     .fold(String::new(), |acc, c| acc + "\n" + &convert_comment(&c))
                 {
                     s if s.is_empty() => "Well Done".to_string(),
